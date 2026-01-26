@@ -759,6 +759,7 @@ void TRACED(init_Generic_Tabs)
 
 		hidden_tabs->add(tab_yaesu_bands);
 		hidden_tabs->add(tab_ft991_bands);
+		hidden_tabs->add(tab_ftx1_bands);
 		hidden_tabs->add(tab_FT8n_bands);
 		hidden_tabs->add(tab_FT8n_CTCSS);
 		hidden_tabs->add(tab_icom_bands);
@@ -778,6 +779,7 @@ void TRACED(init_Generic_Tabs)
 	} else {
 		tabsGeneric->remove(tab_yaesu_bands);
 		tabsGeneric->remove(tab_ft991_bands);
+		tabsGeneric->remove(tab_ftx1_bands);
 		tabsGeneric->remove(tab_FT8n_bands);
 		tabsGeneric->remove(tab_FT8n_CTCSS);
 		tabsGeneric->remove(tab_icom_bands);
@@ -814,6 +816,10 @@ void TRACED(init_Generic_Tabs)
 			tabsGeneric->add(tab_ft991_bands);
 			tab_ft991_bands->redraw();
 			tab_ft991_bands->show();
+		} else if (selrig->name_ == rig_FTX1.name_) {
+			tabsGeneric->add(tab_ftx1_bands);
+			tab_ftx1_bands->redraw();
+			tab_ftx1_bands->show();
 		} else {
 			tabsGeneric->add(tab_yaesu_bands);
 			tab_yaesu_bands->redraw();
