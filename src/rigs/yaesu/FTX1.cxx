@@ -824,6 +824,9 @@ int  RIG_FTX1::next_attenuator()
 void RIG_FTX1::set_attenuator(int val)
 {
 	atten_state = val;
+	if (val) {
+    	atten_state = 1; // sanity limit
+	}
 	cmd = "RA00;";
 	cmd[3] += atten_state;
 	sendCommand(cmd);
