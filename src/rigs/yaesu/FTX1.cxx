@@ -135,7 +135,7 @@ static std::vector<std::string>& Channels_60m = FTX1_US_60m;
 
 //----------------------------------------------------------------------
 static std::vector<std::string>FTX1_att_labels;
-static const char *vFTX1_att_labels[] = { "ATT", "6 dB", "12 dB", "18 dB"};
+static const char *vFTX1_att_labels[] = { "ATT", "ATT on"};
 
 static std::vector<std::string>FTX1_pre_labels;
 static const char *vFTX1_pre_labels[] = { "IPO", "Amp 1", "Amp 2" };
