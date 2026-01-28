@@ -367,10 +367,6 @@ void RIG_FTX1::get_band_selection(int v)
 
 	size_t p = replystr.rfind("IF");
 	if (p == std::string::npos) return;
-// TODO: this doesn't seem right
-// 	if (replystr[p+24 ] != '0') {	// vfo 60M memory mode
-// 		inc_60m = true;
-// 	}
 
 	if (v == 12) {	// 5MHz 60m presets
 		if (Channels_60m[0].empty()) return;	// no 60m Channels so skip
@@ -873,7 +869,7 @@ int RIG_FTX1::get_preamp()
 	cmd += ';';
 	wait_char(';', 5, 100, "get pre", ASC);
 
-    //TODO: add support for UHF and VHF just off and on
+    //TODO: add support for UHF and VHF just off and on (not two stage)
     
 	gett("get_preamp()");
 
