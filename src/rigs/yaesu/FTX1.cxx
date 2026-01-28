@@ -848,6 +848,18 @@ int RIG_FTX1::get_attenuator()
 	return atten_state;
 }
 
+bool RIG_FTX1::is_two_meter_plus()
+{
+    unsigned long long freq = 0;
+    if (inuse == onB)
+        freq = get_vfoB();
+    else
+        freq = get_vfoA();
+
+    const bool two_meter_plus = freq >= 144000000ULL;
+    return two_meter_plus;
+}
+
 int  RIG_FTX1::next_preamp()
 {
     const bool two_meter_plus = is_two_meter_plus();
@@ -864,18 +876,6 @@ int  RIG_FTX1::next_preamp()
 		default: return 0;
 	}
 	return 0;
-}
-
-bool RIG_FTX1::is_two_meter_plus()
-{
-    unsigned long long freq = 0;
-    if (inuse == onB)
-        freq = get_vfoB();
-    else
-        freq = get_vfoA();
-
-    const bool two_meter_plus = freq >= 144000000ULL;
-    return two_meter_plus;
 }
 
 void RIG_FTX1::set_preamp(int val)
