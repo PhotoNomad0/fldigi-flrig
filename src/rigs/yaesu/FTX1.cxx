@@ -29,8 +29,9 @@
 #include "support.h"
 
 enum mFTX1 {
-   mLSB, mUSB, mCW_U, mFM, mAM, mRTTY_L, mCW_L, mDATA_L, mRTTY_U, mDATA_FM, mFM_N, mDATA_U, mAM_N, mPSK, mDATA_FMN };
-//  0,    1,    2,    3,    4,    5,       6,     7,      8,       9,        10,    11,      12,    13,      14		// mode index
+   mLSB, mUSB, mCW_U, mFM, mAM, mRTTY_L, mCW_L, mDATA_L, mRTTY_U, mDATA_FM, mFM_N, mDATA_U, mAM_N, mPSK, mDATA_FMN,  m_NA_G, mC4FM_N, mC4FM_VW};
+//  0,    1,    2,    3,    4,    5,       6,     7,      8,       9,        10,    11 ,     12,    13,      14,      15	  16,      17   // mode index
+//  1,    2,    3,    4,    5,    6,       7,     8,      9,       A,        B,     C,       D,      E		 F,       G,      H,       I    // actual value
 
 static const char FTX1name_[] = "FTX-1";
 
@@ -53,12 +54,13 @@ static int mode_bwB[NUM_MODES] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 
 static std::vector<std::string>FTX1modes_;
 static const char *vmd[] = {
-"LSB", "USB", "CW-U", "FM", "AM",
-"RTTY-L", "CW-L", "DATA-L", "RTTY-U", "DATA-FM",
-"FM-N", "DATA-U", "AM-N", "PSK", "DATA-FMN"};
+  "LSB", "USB", "CW-U", "FM", "AM",
+  "RTTY-L", "CW-L", "DATA-L", "RTTY-U", "DATA-FM",
+  "FM-N", "DATA-U", "AM-N", "PSK", "DATA-FMN", "-",
+  "C4FM_N", "C4FM_VW"};
 
-static const char FTX1_mode_chr[] =  { '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-static const char FTX1_mode_type[] = { 'L', 'U', 'U', 'U', 'U', 'L', 'L', 'L', 'U', 'U', 'U', 'U', 'U', 'U', 'U' };
+static const char FTX1_mode_chr[] =  { '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' };
+static const char FTX1_mode_type[] = { 'L', 'U', 'U', 'U', 'U', 'L', 'L', 'L', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U' };
 
 static std::vector<std::string>FTX1_widths_SSB;
 static const char *vssb[] = {
