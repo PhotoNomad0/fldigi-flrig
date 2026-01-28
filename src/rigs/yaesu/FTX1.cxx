@@ -872,7 +872,6 @@ int  RIG_FTX1::next_preamp()
             } else {
 		        return 2;
             }
-		case 2: return 0;
 		default: return 0;
 	}
 	return 0;
