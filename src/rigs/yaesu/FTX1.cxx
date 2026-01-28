@@ -36,7 +36,7 @@ enum mFTX1 {
 static const char FTX1name_[] = "FTX-1";
 
 #undef  NUM_MODES
-#define NUM_MODES  17
+#define NUM_MODES  18
 
 static int defBW_narrow[NUM_MODES] = {
 //  mLSB, mUSB, mCW_U, mFM, mAM, mRTTY_L, mCW_L, mDATA_L, mRTTY_U, mDATA_FM, mFM_N, mDATA_U, mAM_N, mPSK, mDATA_FMN,  m_NA_G, mC4FM_N, mC4FM_VW };
@@ -59,7 +59,7 @@ static const char *vmd[] = {
   "LSB", "USB", "CW-U", "FM", "AM",
   "RTTY-L", "CW-L", "DATA-L", "RTTY-U", "DATA-FM",
   "FM-N", "DATA-U", "AM-N", "PSK", "DATA-FMN", "-",
-  "C4FM_N", "C4FM_VW"};
+  "C4FM_N", "C4FM_VW" };
 
 static const char FTX1_mode_chr[] =  { '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' };
 static const char FTX1_mode_type[] = { 'L', 'U', 'U', 'U', 'U', 'L', 'L', 'L', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U' };
@@ -70,7 +70,7 @@ static const char *vssb[] = {
 "1200", "1500", "1650", "1800", "1950",		// 6 ... 10
 "2100", "2250", "2400", "2450", "2500",		// 11 ... 15
 "2600", "2700", "2800", "2900", "3000",		// 16 ... 20
-"3200", "3500", "4000" };				// 21 ... 23
+"3200", "3500", "4000" };				    // 21 ... 23
 
 static int FTX1_wvals_SSB[] = {
 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23, WVALS_LIMIT};
@@ -81,7 +81,7 @@ static const char *vcww[] = {
  "300",  "350",  "400",  "450",  "500",		// 6 ... 10
  "600",  "800", "1200", "1400", "1700",		// 11 ... 15
 "2000", "2400", "3000", "3200", "3500",		// 16 .. 20
-"4000" };								// 21
+"4000" };								    // 21
 
 static int FTX1_wvals_CW[] = {
 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18, 19, 20, 21, WVALS_LIMIT };
@@ -92,7 +92,7 @@ static const char *vrtty[] = {
  "300",  "350",  "400",  "450",  "500",		// 6 ... 10
  "600",  "800", "1200", "1400", "1700",		// 11 ... 15
 "2000", "2400", "3000", "3200", "3500",		// 16 .. 20
-"4000" };								// 21
+"4000" };								    // 21
 
 static int FTX1_wvals_RTTY[] = {
 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18, 19, 20, 21, WVALS_LIMIT };
@@ -103,7 +103,7 @@ static const char *vdata[] = {
  "300",  "350",  "400",  "450",  "500",		// 6 ... 10
  "600",  "800", "1200", "1400", "1700",		// 11 ... 15
 "2000", "2400", "3000", "3200", "3500",		// 16 .. 20
-"4000" };								// 21
+"4000" };								    // 21
 
 static int FTX1_wvals_PSK[] = {
 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18, 19, 20, 21, WVALS_LIMIT };
@@ -882,10 +882,10 @@ void RIG_FTX1::set_preamp(int val)
 	preamp_state = val;
 	cmd = "PA00;";
 
-    const bool two_meter_plus = is_two_meter_plus();
-    if (two_meter_plus && (preamp_state > 1) { // limit preamp for higher bands
-        preamp_state = 1;
-    }
+	const bool two_meter_plus = is_two_meter_plus();
+	if (two_meter_plus && (preamp_state > 1)) { // limit preamp for higher bands
+		preamp_state = 1;
+	}
 
 	cmd[3] = '0' + preamp_state;
 	sendCommand (cmd);
