@@ -66,8 +66,8 @@ static const char FTX1_mode_type[] = { 'L', 'U', 'U', 'U', 'U', 'L', 'L', 'L', '
 
 static std::vector<std::string>FTX1_widths_SSB;
 static const char *vssb[] = {
- "300",  "400",  "600",  "850", "1100", 	// 1 ... 5
-"1200", "1500", "1650", "1800", "1950",		// 6 ... 10
+ "300",  "400",  "600",  "850", "1100", 	//  1 ... 5
+"1200", "1500", "1650", "1800", "1950",		//  6 ... 10
 "2100", "2250", "2400", "2450", "2500",		// 11 ... 15
 "2600", "2700", "2800", "2900", "3000",		// 16 ... 20
 "3200", "3500", "4000" };				    // 21 ... 23
@@ -77,8 +77,8 @@ static int FTX1_wvals_SSB[] = {
 
 static std::vector<std::string>FTX1_widths_CW;
 static const char *vcww[] = {
-  "50",  "100",  "150",  "200",  "250",		// 1 ... 5
- "300",  "350",  "400",  "450",  "500",		// 6 ... 10
+  "50",  "100",  "150",  "200",  "250",		//  1 ... 5
+ "300",  "350",  "400",  "450",  "500",		//  6 ... 10
  "600",  "800", "1200", "1400", "1700",		// 11 ... 15
 "2000", "2400", "3000", "3200", "3500",		// 16 .. 20
 "4000" };								    // 21
@@ -88,8 +88,8 @@ static int FTX1_wvals_CW[] = {
 
 static std::vector<std::string>FTX1_widths_RTTY;
 static const char *vrtty[] = {
-  "50",  "100",  "150",  "200",  "250",		// 1 ... 5
- "300",  "350",  "400",  "450",  "500",		// 6 ... 10
+  "50",  "100",  "150",  "200",  "250",		//  1 ... 5
+ "300",  "350",  "400",  "450",  "500",		//  6 ... 10
  "600",  "800", "1200", "1400", "1700",		// 11 ... 15
 "2000", "2400", "3000", "3200", "3500",		// 16 .. 20
 "4000" };								    // 21
@@ -99,8 +99,8 @@ static int FTX1_wvals_RTTY[] = {
 
 static std::vector<std::string>FTX1_widths_DATA;
 static const char *vdata[] = {
-  "50",  "100",  "150",  "200",  "250",		// 1 ... 5
- "300",  "350",  "400",  "450",  "500",		// 6 ... 10
+  "50",  "100",  "150",  "200",  "250",		//  1 ... 5
+ "300",  "350",  "400",  "450",  "500",		//  6 ... 10
  "600",  "800", "1200", "1400", "1700",		// 11 ... 15
 "2000", "2400", "3000", "3200", "3500",		// 16 .. 20
 "4000" };								    // 21
@@ -133,7 +133,7 @@ static const char *vfmdn[] = { "9000" };
 // static const char *FTX1_UK_60m[] = {"", "126", "127", "128", "130", "131", "132"};
 
 static std::vector<std::string>FTX1_US_60m;
-static const char *v60m[] = {"", "126", "127", "128", "130"};
+static const char *v60m[] = {"50011", "50012", "50013", "50014", "50015"};
 
 static std::vector<std::string>& Channels_60m = FTX1_US_60m;
 
@@ -372,20 +372,30 @@ void RIG_FTX1::get_band_selection(int v)
 	size_t p = replystr.rfind("IF");
 	if (p == std::string::npos) return;
 
-	if (v == 12) {	// 5MHz 60m presets
+ 	if (replystr[p+24 ] != '0') {	// P7 = 0 means VFO mode, otherwise assume memory mode
+ 		inc_60m = true;
+ 	}
+
+	if (v == 12) {	// 5MHz 60m presets, each time it is called toggle to next channel
 		if (Channels_60m[0].empty()) return;	// no 60m Channels so skip
 		if (inc_60m) {
-			if (++m_60m_indx > (int)Channels_60m.size()) m_60m_indx = 0;
+			if (++m_60m_indx >= (int)Channels_60m.size()) m_60m_indx = 0;
 		}
-		cmd.assign("MC").append(Channels_60m[m_60m_indx]).append(";");
+		if (inuse == onB)
+			cmd = "MC1";
+		else
+			cmd = "MC0";
+		cmd.append(Channels_60m[m_60m_indx]).append(";");
 	} else {		// v == 1..11 band selection OR return to vfo mode == 0
-		if (inc_60m)
-			cmd = "VM;";
-		else {
-			if (v < 3)
-				v = v - 1;
-			cmd.assign("BS0").append(to_decimal(v, 2)).append(";");
+		if (inc_60m) {
+			cmd = "VM;"; // first switch back to VFO
+			sendCommand(cmd);
 		}
+
+		if (v < 3) {
+			v = v - 1;
+		}
+		cmd.assign("BS0").append(to_decimal(v, 2)).append(";");
 	}
 
 	sendCommand(cmd);
