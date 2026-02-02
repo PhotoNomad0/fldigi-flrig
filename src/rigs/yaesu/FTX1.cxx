@@ -27,6 +27,17 @@
 #include "yaesu/FTX1.h"
 #include "debug.h"
 #include "support.h"
+#include "trace.h"
+
+// use like this to trace data: `TRACE_STREAM(1, "execute_setPower()-spnrPOWER, progStatus.power_level=" << progStatus.power_level);`
+#define TRACE_STREAM(level, streamExpr)                           \
+    do {                                                          \
+        std::ostringstream _trace_os_;                             \
+        _trace_os_ << streamExpr;                                  \
+        const std::string _trace_s_ = _trace_os_.str();            \
+        trace((level), _trace_s_.c_str());                         \
+    } while (0)
+
 
 enum mFTX1 {
    mLSB, mUSB, mCW_U, mFM, mAM, mRTTY_L, mCW_L, mDATA_L, mRTTY_U, mDATA_FM, mFM_N, mDATA_U, mAM_N, mPSK, mDATA_FMN,  m_NA_G, mC4FM_N, mC4FM_VW };
@@ -725,7 +736,7 @@ void RIG_FTX1::set_power_control(double val)
 	cmd = "PC";
     cmd += m_tX_output;   // append the output selector
     cmd += "000;";
-	for (int i = 4; i > 1; i--) {
+	for (int i = 5; i > 2; i--) {
 		cmd[i] += ival % 10;
 		ival /= 10;
 	}
@@ -1533,7 +1544,7 @@ void RIG_FTX1::set_cw_weight()
 
 void RIG_FTX1::set_cw_qsk()
 {
-	int n = (progStatus.cw_qsk / 5 - 3) % 10;
+	int n = progStatus.cw_qsk / 5 - 3;
 	cmd.assign("EX020117").append(to_decimal(n, 1)).append(";");
 	sendCommand(cmd);
 	showresp(WARN, ASC, "SET cw qsk", cmd, replystr);
