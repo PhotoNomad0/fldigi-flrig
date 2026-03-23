@@ -120,6 +120,8 @@ int meter_image = SWR_IMAGE;
 
 bool xcvr_online = false;
 
+std::vector<MemoryResponse> memories;
+
 // meter values passed to display functions
 
 double smtrval = 0;
@@ -341,11 +343,13 @@ void read_vfo()
 // 			TRACE_STREAM(1, "read_vfo() - get_current_memory tag_=" << tag_ );
 			label_mem_channel->label(tag_);
 			label_mem_channel->redraw_label();
+			channel_selector->show();
 		} else  {
 			labelMEMORY->hide();
 			label_mem_channel->label("");
 			label_mem_channel->redraw_label();
 			label_mem_channel->hide();
+			channel_selector->hide();
 		}
 	}
 
@@ -2220,6 +2224,21 @@ void TRACED ( updateBandwidthControl, void *d )
 //		sldrINNER->redraw();
 //		sldrOUTER->redraw();
 //	}
+}
+
+void saveChannels(std::vector<MemoryResponse> memories_) {
+	memories = memories_;
+}
+
+void setChannel() {
+	guard_lock serlock( &mutex_serial );
+	unsigned int pos = channel_selector->index();
+	TRACE_STREAM(1, "setChannel() - selected index pos=" << pos );
+	if (pos < memories.size() && pos >= 0) {
+		MemoryResponse memory = memories[pos];
+		int channel_number = atoi(memory.ChannelNum.c_str());
+		selrig->select_channel(channel_number);
+	}
 }
 
 void setMode()
