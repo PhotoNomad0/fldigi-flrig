@@ -312,7 +312,8 @@ RIG_FTX1::RIG_FTX1() {
 	has_ifshift_control =
 	has_ptt_control =
 	has_tune_control =
-	has_xcvr_auto_on_off = true;
+	has_xcvr_auto_on_off =
+    has_vfo_mem = true;
 
 // derived specific
 	atten_state = 0;
@@ -379,20 +380,149 @@ void RIG_FTX1::set_xcvr_auto_off()
 	}
 }
 
+void RIG_FTX1::vfo_mem_toggle()
+{
+	sendCommand("VM;");
+	sett("vfo_mem_toggle");
+}
+
+void RIG_FTX1::change_channel(bool channel_up)
+{
+	cmd = channel_up ? "CH0;" : "CH1;";
+	sendCommand(cmd);
+	if (channel_up) {
+		sett("change_channel UP");
+	} else {
+		sett("change_channel DOWN");
+	}
+}
+
+void RIG_FTX1::power(bool on)
+{
+	cmd = on ? "PS1;" : "PS0;";
+	sendCommand(cmd);
+
+	if (on) {
+		sett("power on");
+	} else {
+		sett("power off");
+	}
+}
+
+
+static bool in_memory_mode = false;
+static int memory_channel = 0;
+static std::string memory_channel_id_str;
+static std::string memory_channel_tag;
+
+std:string RIG_FTX1::get_memory_tag(const std::string memory_channel_id_str_)
+{
+	cmd = rsp = "MT";
+	cmd = cmd + memory_channel_id_str_ + ';'; // add the memory channel number to the MT command to get the memory channel tag
+	wait_char(';', 30, 100, "get_current_memory_tag", ASC);
+	size_t p = replystr.rfind(rsp);
+	if (p != std::string::npos) {
+		memory_channel_tag = replystr.substr(p + 7, 12);
+	}
+	//			TRACE_STREAM(1, "get_current_memory_tag() replystr=" << replystr << ", memory_channel_tag=" << memory_channel_tag << ", memory_channel_id_str='" << memory_channel_id_str << "'");
+	memory_channel_tag.erase(0, memory_channel_tag.find_first_not_of(" \t\n\r"));
+	memory_channel_tag.erase(memory_channel_tag.find_last_not_of(" \t\n\r") + 1);
+	//			TRACE_STREAM(1, "get_current_memory_tag() trimmed memory_channel_tag='" << memory_channel_tag << "'");
+	if (memory_channel_tag.empty()) {
+		memory_channel_tag = memory_channel_id_str;
+		//				TRACE_STREAM(1, "get_current_memory_tag() fall back to using memory_channel_id_str=" << memory_channel_id_str);
+	}
+	return memory_channel_tag;
+}
+
+struct MemoryResponse {
+	std::string ChannelNum;  // channel number (5 bytes)
+	std::string Frequency;  // frequency (9 bytes)
+	std::string Clarifier;  // clarifier (5 bytes)
+	std::string RxClarifier;  // RX clarifier (1 byte)
+	std::string TxClarifier;  // TX clarifier (1 byte)
+	std::string Mode;  // mode (1 byte)
+	std::string VfoMem;  // VFO/memory mode (1 byte)
+	std::string RepeaterMode;  // repeater mode (1 byte)
+	std::string Shift; // shift (1 byte)
+};
+
+bool RIG_FTX1::parse_memory_response(const std::string replystr, const size_t offset, const MemoryResponse &parsedResponse)
+{
+	if (p != std::string::npos) {
+		// get channel number
+		parsedResponse.ChannelNum = replystr.substr(p + 2, 5); // P1 = 5 bytes representing current memory channel. NOTE - the numbers get strange on Emergency channels - seeing semicolons
+		parsedResponse.Frequency = replystr.substr(p + 7, 9); // P1 = 5 bytes representing frequency
+		parsedResponse.Clarifier = replystr.substr(p + 16, 5); // P3 = clarifier
+		parsedResponse.RxClarifier = replystr.substr(p + 21, 1); // P4 - RX clarifier
+		parsedResponse.TxClarifier = replystr.substr(p + 22, 1); // P5 - TX clarifier
+		parsedResponse.Mode = replystr.substr(p + 23, 1); // P6 - mode
+
+		parsedResponse.VfoMem = replystr.substr(p + 24, 1); // P7 = 0 means VFO mode, otherwise assume memory mode
+		parsedResponse.RepeaterMode = replystr.substr(p + 25, 1); // P8 = repeater mode
+		parsedResponse.Shift = replystr.substr(p + 28, 1); // P10 = shift
+		return true;
+	}
+	
+	// not valid response
+	return false;
+}
+
+bool RIG_FTX1::get_memory_config(const std::string memory_channel_id_str_, const MemoryResponse &parsedResponse)
+{
+	cmd = rsp = "MR";
+	cmd = cmd + memory_channel_id_str_ + ';'; // add the memory channel number to the MR command to get the memory channel config
+	wait_char(';', 30, 100, "get_memory_config", ASC);
+	size_t p = replystr.rfind(rsp);
+	const bool parsed = parse_memory_response(replystr, p, parsedResponse)
+	return parsed;
+}
+
+bool RIG_FTX1::get_current_memory(int &memory_channel_, std::string &memory_channel_tag_)
+{
+	int in_memory_mode_ = false;
+	memory_channel_ = 0;
+	memory_channel_tag = "";
+
+	if (inuse == onA)
+		cmd = rsp = "IF";
+	else // onB
+		cmd = rsp = "OI";
+
+	cmd += ';';
+	wait_char(';', 30, 100, "get_current_memory", ASC);
+
+// 	sett("get_current_memory");
+
+	size_t p = replystr.rfind(rsp);
+	const MemoryResponse parsedResponse;
+	const bool parsed = parse_memory_response(replystr, p, parsedResponse)
+    if (p != std::string::npos) {
+        memory_channel_id_str = parsedResponse.ChannelNum;
+        memory_channel_ = std::stoi(memory_channel_id_str);
+        char vfoMem = parsedResponse.VfoMem[0];
+//         TRACE_STREAM(1, "get_current_memory() replystr=" << replystr << ", memory_channel_id_str='" << memory_channel_id_str << "', vfoMem=" << vfoMem);
+        if (vfoMem != '0') {
+            in_memory_mode_ = true;
+        }
+ 	}
+	
+	if (in_memory_mode_) {
+		memory_channel_tag = get_memory_tag(const std::string memory_channel_id_str_)
+	}
+
+ 	in_memory_mode = in_memory_mode_;
+ 	memory_channel = memory_channel_;
+	memory_channel_tag_ = memory_channel_tag;
+ 	return in_memory_mode_;
+}
+
 void RIG_FTX1::get_band_selection(int v)
 {
-	int inc_60m = false;
-	cmd = "IF;";
-	wait_char(';', 30, 100, "get band", ASC);
-
+	int memory_channel = 0;
+	std::string memory_channel_tag;
+	bool inc_60m = get_current_memory(memory_channel, memory_channel_tag);
 	sett("get band");
-
-	size_t p = replystr.rfind("IF");
-	if (p == std::string::npos) return;
-
- 	if (replystr[p+24 ] != '0') {	// P7 = 0 means VFO mode, otherwise assume memory mode
- 		inc_60m = true;
- 	}
 
 	if (v == 12) {	// 5MHz 60m presets, each time it is called toggle to next channel
 		if (Channels_60m[0].empty()) return;	// no 60m Channels so skip
@@ -506,7 +636,7 @@ int RIG_FTX1::get_vfoAorB()
 	wait_char(';', 4, 100, "get vfoAorB()", ASC);
 	gett("get vfoAorB()");
 	size_t p = replystr.rfind(rsp);
-//	inuse = onA;
+
 	if (p != std::string::npos)
 		inuse = (replystr[p + 2] == '1') ? onB : onA;
 	return inuse;

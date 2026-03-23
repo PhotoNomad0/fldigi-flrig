@@ -350,6 +350,8 @@ public:
 
 	bool has_voltmeter;
 
+	bool has_vfo_mem;
+
 // Icom Xcvr 
 	bool ICOMrig;
 	bool ICOMmainsub;
@@ -773,6 +775,11 @@ double vfo_;
 	virtual void set_special(int v) {}
 	virtual void set_band_selection(int v) {}
 	virtual void get_band_selection(int v) {}
+	virtual void vfo_mem_toggle() {}
+	virtual void power_off() {}
+	virtual void change_channel(bool channel_up) {}
+	virtual void power(bool on) {}
+	virtual bool get_current_memory(int &memory_channel, std::string &memory_channel_tag){return false;}
 	virtual void set_xcvr_auto_on() {}
 	virtual void set_xcvr_auto_off() {}
 

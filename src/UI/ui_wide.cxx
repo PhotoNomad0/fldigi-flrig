@@ -565,14 +565,6 @@ CTRL  click: FreqB -> FreqA\
 				btn_K3_swapAB->callback((Fl_Callback*)cb_btn_K3_swapAB);
 				btn_K3_swapAB->hide();
 
-				labelMEMORY = new Fl_Box(
-					btnA->x(), ypos,
-					btnA->w(), btnAswapB->h(), _("MEMORY"));
-				labelMEMORY->box(FL_DOWN_BOX);
-				labelMEMORY->color(FL_YELLOW);
-				labelMEMORY->align(FL_ALIGN_CENTER);
-				labelMEMORY->hide();
-
 				btnSplit = new Fl_Light_Button(
 					btnB->x(), ypos,
 					btnB->w(), 20, _("Split"));
@@ -583,12 +575,21 @@ CTRL  click: FreqB -> FreqA\
 				btnSplit->value(progStatus.split);
 
 				btnPTT = new Fl_Light_Button(
-					btnTune->x(), ypos,
+					btn_tune_on_off->x(), ypos,
 					btnTune->w(), 20, _("PTT"));
 				btnPTT->tooltip(_("Xmt On/Off"));
 				btnPTT->down_box(FL_THIN_DOWN_BOX);
 				btnPTT->labelsize(12);
 				btnPTT->callback((Fl_Callback*)cb_btnPTT);
+
+				labelMEMORY = new Fl_Box(
+					btnPTT->x() + btnPTT->w(), ypos,
+					btn_K3_swapAB->w() - 16, btnAswapB->h(), _("MEMORY"));
+				labelMEMORY->tooltip(_("Channel #"));
+				labelMEMORY->box(FL_DOWN_BOX);
+				labelMEMORY->color(FL_YELLOW);
+				labelMEMORY->align(FL_ALIGN_CENTER);
+				labelMEMORY->hide();
 
 				bx_row1_expander2 = new Fl_Box(
 					btnPTT->x() + btnPTT->w(), ypos,
