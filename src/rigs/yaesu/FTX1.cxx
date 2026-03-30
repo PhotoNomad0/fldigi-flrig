@@ -397,6 +397,24 @@ void RIG_FTX1::change_channel(bool channel_up)
 	}
 }
 
+void RIG_FTX1::scan_operation(bool start)
+{
+	if (inuse == onA)
+		cmd = "SC0";
+	else // onB
+		cmd = "SC1";
+
+	const char * operation = start ? "1" : "0";
+
+	cmd = cmd + operation + ";";
+	sendCommand(cmd);
+	if (start) {
+		sett("scan_operation START");
+	} else {
+		sett("scan_operation STOP");
+	}
+}
+
 void RIG_FTX1::power(bool on)
 {
 	cmd = on ? "PS1;" : "PS0;";
@@ -408,6 +426,7 @@ void RIG_FTX1::power(bool on)
 		sett("power off");
 	}
 }
+
 
 /**
  * Removes leading and trailing whitespace from a string.
@@ -432,7 +451,28 @@ static int memory_channel = 0;
 static std::string memory_channel_id_str;
 static std::string memory_channel_tag;
 
-
+/**
+ * Converts a string to an integer with error handling.
+ *
+ * @param str The string to convert to an integer
+ * @param deflt_value The default value to return if conversion fails (default: 0)
+ * @return The converted integer value, or deflt_value if conversion fails
+ *
+ * This function safely converts a string to an integer using std::stoi.
+ * If the conversion throws an exception (e.g., invalid format, out of range),
+ * the function catches it, logs a trace message, and returns the default value
+ * instead of propagating the exception.
+ */
+int sToInt(const std::string& str, int deflt_value = 0) {
+	int value = deflt_value;
+	try {
+		value = std::stoi(str);
+	} catch (const std::exception& e) {
+		TRACE_STREAM(1, "sToInt() exception converting str='" << str << "', exception=" << e.what());
+		value = deflt_value;
+	}
+	return value;
+}
 /**
  * Retrieves the memory tag (label/description) for a given memory channel.
  *
@@ -461,7 +501,8 @@ std::string RIG_FTX1::get_memory_tag(const std::string memory_channel_id_str_)
 	//			TRACE_STREAM(1, "get_current_memory_tag() trimmed memory_channel_tag='" << memory_channel_tag << "'");
 	if (memory_channel_tag.empty()) {
 		std::string tag = memory_channel_id_str; // default
-		int channel_number = std::stoi(memory_channel_id_str);
+
+		int channel_number = sToInt(memory_channel_id_str_);
 		if (channel_number >= 50001 && channel_number <= 50005) {
 			tag = "60m ch" + std::to_string(channel_number - 50000) + " (USB)";
 		} else if (channel_number >= 50006 && channel_number <= 50010) {
@@ -469,6 +510,7 @@ std::string RIG_FTX1::get_memory_tag(const std::string memory_channel_id_str_)
 		} else if (channel_number >= 50011 && channel_number <= 50015) {
 			tag = "60m ch" + std::to_string(channel_number - 50010) + " (DATA-U)";
 		}
+
 		memory_channel_tag = tag;
 		//				TRACE_STREAM(1, "get_current_memory_tag() fall back to using memory_channel_id_str=" << memory_channel_id_str);
 	}
@@ -636,7 +678,7 @@ bool RIG_FTX1::get_current_memory(int &memory_channel_, std::string &memory_chan
 	const bool parsed = parse_memory_response(replystr, p, parsedResponse);
     if (p != std::string::npos) {
         memory_channel_id_str = parsedResponse.ChannelNum;
-        memory_channel_ = std::stoi(memory_channel_id_str);
+        memory_channel_ = sToInt(memory_channel_id_str);
         char vfoMem = parsedResponse.VfoMem[0];
 //         TRACE_STREAM(1, "get_current_memory() replystr=" << replystr << ", memory_channel_id_str='" << memory_channel_id_str << "', vfoMem=" << vfoMem);
         if (vfoMem != '0') {
@@ -1784,7 +1826,7 @@ int RIG_FTX1::get_nb_level()
     // Parse 2 digits starting at p+4 (i.e., replystr[p+4] and replystr[p+5])
     // Example: "NL0007;" -> nb_state = 7, "NL0010;" -> nb_state = 10
     std::string stateStr = replystr.substr(4, 2);
-    nb_state = std::stoi(stateStr);
+    nb_state = sToInt(stateStr);
 
 // trace the command
 //     std::stringstream s;
