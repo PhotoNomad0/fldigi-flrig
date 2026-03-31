@@ -26,6 +26,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <cstring>
 
 #include "yaesu/FTX1.h"
 #include "debug.h"
@@ -845,7 +846,7 @@ int RIG_FTX1::get_vfoAorB()
 	gett("get vfoAorB()");
 	size_t p = replystr.rfind(rsp);
 
-	if (p != std::string::npos)
+	if (p != std::string::npos && p + 2 < replystr.length())
 		inuse = (replystr[p + 2] == '1') ? onB : onA;
 	return inuse;
 }
@@ -904,6 +905,7 @@ int RIG_FTX1::get_split()
 	gett("get split()");
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return 0;
+	if (p + 2 >= replystr.length()) return 0;
 	int split = replystr[p+2] - '0';
 
 	return (split > 0);
@@ -919,14 +921,20 @@ void RIG_FTX1::swapAB()
 
 int RIG_FTX1::get_smeter()
 {
+	if (inuse == onA)
 	cmd = rsp = "SM0";
+	else // onB
+		cmd = rsp = "SM1";
+		
 	cmd += ';';
 	wait_char(';', 7, 100, "get smeter", ASC);
 
 	gett("get_smeter()");
 
 	int mtr = 0;
-	sscanf(replystr.c_str(), "SM0%d", &mtr);
+    if (replystr.rfind(rsp) == std::string::npos) return 0;
+    std::string searchStr = rsp + "%d";
+	sscanf(replystr.c_str(), searchStr.c_str(), &mtr);
 	mtr = mtr * 100.0 / 256.0;
 	return mtr;
 }
@@ -940,8 +948,10 @@ int RIG_FTX1::get_swr()
 	gett("get_swr()");
 
 	int mtr = 0, dmy = 0;
-	size_t p = replystr.rfind("RM6");
-	sscanf(&replystr[p], "RM6%3d%3d", &mtr, &dmy);
+	size_t p = replystr.rfind(rsp);
+	if (p == std::string::npos || p + 9 >= replystr.length()) return 0;
+	std::string searchStr = rsp + "%3d%3d";
+	sscanf(&replystr[p], searchStr.c_str(), &mtr, &dmy);
 
 	return mtr / 2.56;
 }
@@ -970,7 +980,7 @@ double RIG_FTX1::get_idd()
 	int mtr = 0, dmy = 0;
 	double idd = 0;
 	size_t p = replystr.rfind("RM7");
-	if (p != std::string::npos) {
+	if (p != std::string::npos && p + 9 < replystr.length()) {
 		sscanf(&replystr[p], "RM7%3d%3d", &mtr, &dmy);
 		size_t i = 0;
 		for (i = 0; i < sizeof(iddtbl) / sizeof(meterpair) - 1; i++)
