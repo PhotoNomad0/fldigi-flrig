@@ -548,7 +548,7 @@ bool RIG_FTX1::parse_memory_response(const std::string replystr, const size_t of
 		parsedResponse.Shift = replystr.substr(p + 28, 1); // P10 = shift
 		return true;
 	}
-	
+
 	// not valid response
 	return false;
 }
@@ -686,7 +686,7 @@ bool RIG_FTX1::get_current_memory(int &memory_channel_, std::string &memory_chan
             in_memory_mode_ = true;
         }
  	}
-	
+
 	if (in_memory_mode_) {
 		memory_channel_tag = get_memory_tag(parsedResponse.ChannelNum);
 	}
@@ -922,10 +922,10 @@ void RIG_FTX1::swapAB()
 int RIG_FTX1::get_smeter()
 {
 	if (inuse == onA)
-	cmd = rsp = "SM0";
+		cmd = rsp = "SM0";
 	else // onB
 		cmd = rsp = "SM1";
-		
+
 	cmd += ';';
 	wait_char(';', 7, 100, "get smeter", ASC);
 
@@ -1008,10 +1008,10 @@ double RIG_FTX1::get_voltmeter()
 	double val = 0;
 
 	size_t p = replystr.rfind("RM8");
-	if (p != std::string::npos) {
+	if (p != std::string::npos && p + 9 < replystr.length()) {
 		sscanf(&replystr[p], "RM8%3d%3d", &mtr, &dmy);
-		// initial: val = 13.8 * mtr / 190;
-		val = 0.028 * mtr + 7.46; // through measurement
+		// previously: val = 13.8 * mtr / 190;
+		val = 0.028 * mtr + 7.46; // determined through direct measurement
 		return val;
 	}
 
@@ -1036,6 +1036,7 @@ int RIG_FTX1::get_power_out()
 
 	int mtr = 0, dmy = 0;
 	size_t p = replystr.rfind("RM5");
+	if (p == std::string::npos || p + 9 >= replystr.length()) return 0;
 
 	sscanf(&replystr[p], "RM5%3d%3d", &mtr, &dmy);
 
@@ -1062,6 +1063,8 @@ int RIG_FTX1::get_alc()
 
 	int mtr = 0, dmy = 0;
 	size_t p = replystr.rfind("RM4");
+	if (p == std::string::npos || p + 9 >= replystr.length()) return 0;
+
 	sscanf(&replystr[p], "RM4%3d%3d", &mtr, &dmy);
 
 	return (int)ceil(mtr / 2.56);
@@ -1150,6 +1153,7 @@ int RIG_FTX1::get_PTT()
 
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return ptt_;
+	if (p + 3 > replystr.length()) return ptt_;
 	ptt_ =  (replystr[p+2] != '0' ? 1 : 0);
 	return ptt_;
 }
@@ -1184,6 +1188,7 @@ int RIG_FTX1::get_tune()
 
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return 0;
+	if (p + 4 >= replystr.length()) return 0;
 	if (replystr[p+4] == '0') return 0;
 	return 1;
 }
@@ -1238,6 +1243,7 @@ int RIG_FTX1::get_agc()
 
 	size_t p = replystr.rfind(rsp);
     if (p == std::string::npos) return agcval;
+	if (p + 3 >= replystr.length()) return agcval;
 
 	agcval = replystr[p+3] - '0';
 	if (agcval > 4) {
@@ -1355,7 +1361,7 @@ int RIG_FTX1::get_preamp()
 	gett("get_preamp()");
 
 	size_t p = replystr.rfind(rsp);
-	if (p != std::string::npos)
+	if (p != std::string::npos && p + 4 < replystr.length())
 		preamp_state = replystr[p+3] - '0';
 	return preamp_state;
 }
@@ -1458,15 +1464,13 @@ int RIG_FTX1::get_modeA()
 	gett("get_modeA()");
 
 	size_t p = replystr.rfind(rsp);
-	if (p != std::string::npos) {
-		if (p + 3 < replystr.length()) {
-			int md = replystr[p+3];
-			int n = 0;
-			for (n = 0; n < NUM_MODES; n++)
-				if (md == FTX1_mode_chr[n])
-					break;
-			modeA = n;
-		}
+	if (p != std::string::npos && p + 3 < replystr.length()) {
+		int md = replystr[p+3];
+		int n = 0;
+		for (n = 0; n < NUM_MODES; n++)
+			if (md == FTX1_mode_chr[n])
+				break;
+		modeA = n;
 	}
 	adjust_bandwidth(modeA);
 	return modeA;
@@ -1546,6 +1550,7 @@ int RIG_FTX1::get_bwA()
 
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return bwA;
+	if (p + 6 >= replystr.length()) return bwA;
 
 	replystr[p+6] = 0;
 	int bw_idx = fm_decimal(replystr.substr(p+4), 2);
@@ -1599,10 +1604,10 @@ int RIG_FTX1::get_bwB()
 	size_t p = replystr.rfind(rsp);
 	p = replystr.find(rsp);
 	if (p == std::string::npos) return bwB;
+	if (p + 6 >= replystr.length()) return bwB;
 
 	replystr[p+6] = 0;
 	int bw_idx = fm_decimal(replystr.substr(p+4),2);
-
 	const int *idx = bw_vals_;
 	int i = 0;
 	while (*idx != WVALS_LIMIT) {
@@ -1669,7 +1674,7 @@ bool RIG_FTX1::get_if_shift(int &val)
 
 	size_t p = replystr.rfind(rsp);
 	val = progStatus.shift_val;
-	if (p == std::string::npos) return progStatus.shift;
+	if (p == std::string::npos || p + 8 >= replystr.length()) return progStatus.shift;
 	val = atoi(&replystr[p+5]);
 	if (replystr[p+4] == '-') val = -val;
 	return (val != 0);
@@ -1734,7 +1739,7 @@ bool  RIG_FTX1::get_notch(int &val)
 	rsp = "BP";
 	wait_char(';', 8, 100, "get notch on/off", ASC);
 	size_t p = replystr.rfind(rsp);
-	if (p == std::string::npos) return ison;
+	if (p == std::string::npos || p + 6 >= replystr.length()) return ison;
 
 	gett("get_notch()");
 
@@ -1749,7 +1754,7 @@ bool  RIG_FTX1::get_notch(int &val)
 	gett("get_notch_val()");
 
 	p = replystr.rfind(rsp);
-	if (p == std::string::npos)
+	if (p == std::string::npos || p + 7 >= replystr.length())
 		val = 10;
 	else
 		val = fm_decimal(replystr.substr(p+4), 3) * 10;
@@ -1784,37 +1789,77 @@ int  RIG_FTX1::get_auto_notch()
 
 	size_t p = replystr.rfind("BC");
 	if (p == std::string::npos) return 0;
+	if (p + 3 >= replystr.length()) return 0;
 	if (replystr[p+3] == '1') return 1;
 	return 0;
 }
 
-// this is for setting the noise blanker NB analog level
-void RIG_FTX1::set_nb_level(int val)
-{
- 	if (inuse == onB)
- 		cmd = "NL10";
- 	else
- 		cmd = "NL00";
+std::string currentLabel = ""; // singleton to save current label
 
-	if (nb_state < 0) {
-		nb_state = 0;
-	} else if (nb_state > 10) {
-		nb_state = 10;
-		noise_blanker_label(nb_label(), true);
+/**
+ * Retrieves the noise blanker (NB) label based on current state.
+ *
+ * @return A C-string pointer to the noise blanker label:
+ *         - Returns the label from nb_labels_ vector corresponding to nb_state
+ *         - If nb_state is 0, returns label for level 0 (typically "NB off")
+ *         - Returns "NB" as a fallback if any exception occurs during lookup
+ *
+ * This function provides a safe way to access noise blanker labels, handling
+ * potential out-of-range errors gracefully by catching exceptions and returning
+ * a default "NB" label.
+ */
+const char *RIG_FTX1::nb_label() {
+    try {
+        int level = nb_level;
+        if (nb_state == 0) {
+            level = 0;
+        }
+
+        currentLabel = nb_labels_.at(level);
+//         TRACE_STREAM(1, "nb_label() newLabel=''" << currentLabel << "'', nb_level='" << nb_level << ", nb_state=" << nb_state);
+
+        return currentLabel.c_str();
+    } catch (...) {
+        return "NB";
+    }
+}
+
+// this is for setting the noise blanker NB analog level.  Combines val with nb_state to send to radio
+void RIG_FTX1::set_nb_level(int val) // 0 to 10
+{
+    nb_level = val;
+	if (nb_level < 0) {
+		nb_level = 0;
+	} else if (nb_level > 10) {
+		nb_level = 10;
 	}
+	int newVal = nb_level;
+
+    if (inuse == onB)
+        cmd = "NL10";
+    else
+        cmd = "NL00";
+
+    if (nb_state == 0 || newVal <= 0) {
+        newVal = 0;
+        noise_blanker_label("NB", false);
+    } else {
+        noise_blanker_label(nb_label(), true);
+    }
 
     char buf[3];
-    std::snprintf(buf, sizeof(buf), "%02d", nb_state);
-	cmd = cmd + buf + ";";
+    std::snprintf(buf, sizeof(buf), "%02d", newVal);
+    cmd = cmd + buf + ";";
 
-    // trace the command
-    //     std::stringstream s;
-    //     s << "final  nb_state=" << nb_state;
-    //     set_trace(3,"set_noise", cmd.c_str(), s.str().c_str());
+//     trace the command
+//     std::stringstream s;
+//     s << "final  nb_state=" << nb_state << ", nb_level=" << nb_level << ", parameter val=" << val;
+//     set_trace(3,"set_nb_level", cmd.c_str(), s.str().c_str());
 
- 	sendCommand (cmd);
- 	showresp(WARN, ASC, "SET NB Level", cmd, replystr);
+    sendCommand (cmd);
+    showresp(WARN, ASC, "SET NB Level", cmd, replystr);
 }
+
 
 // this is for getting the noise blanker NB analog level
 int RIG_FTX1::get_nb_level()
@@ -1830,60 +1875,86 @@ int RIG_FTX1::get_nb_level()
 
  	gett("get_nb_level()");
 
- 	size_t p = replystr.rfind(rsp);
- 	if (p == std::string::npos) return nb_state;
+	size_t p = replystr.rfind(rsp);
+	if (p == std::string::npos || p + 5 >= replystr.length()) return nb_state;
 
     // Parse 2 digits starting at p+4 (i.e., replystr[p+4] and replystr[p+5])
     // Example: "NL0007;" -> nb_state = 7, "NL0010;" -> nb_state = 10
     std::string stateStr = replystr.substr(4, 2);
-    nb_state = sToInt(stateStr);
+    int level = sToInt(stateStr);
 
-// trace the command
-//     std::stringstream s;
-//     s << " response" << rsp << ", stateStr=" << stateStr << ", nb_state=" << nb_state;
-//     set_trace(3,"get_noise", cmd.c_str(), replystr.c_str());
-//     set_trace(2,"get_noise2", s.str().c_str());
+//     TRACE_STREAM(1, "get_nb_level() replystr='" << replystr << "', level=" << level);
 
- 	if (nb_state) {
- 	    if (nb_state > 10) {
- 	        nb_state = 10;
+ 	if (level > 0) {
+ 	    if (level > 10) {
+ 	        level = 10;
  	    }
- 		noise_blanker_label(nb_labels_[nb_state].c_str(), true);
- 	} else
- 		noise_blanker_label("NB", false);
 
- 	return nb_state;
+ 	    nb_level = level; // save current value
+ 		noise_blanker_label(nb_label(), true);
+
+        if (nb_state == 0) {
+            nb_state = 1;  // if greater than zero NB is actually on
+//             TRACE_STREAM(1, "get_nb_level() level greater than 0, forcing nb_state on, nb_level=" << nb_level << ", nb_state=" << nb_state);
+        } else {
+//             TRACE_STREAM(1, "get_nb_level() level greater than 0, nb_level=" << nb_level << ", nb_state=" << nb_state);
+        }
+ 	} else { // not greater than zero, so NB currently off
+ 	    level = 0;
+        // if NB toggled on we continue to use the last saved value for nb_level
+
+     	if (nb_state != 0) { // saved nb_state was on, but actually is off
+            nb_state = 0;
+//             TRACE_STREAM(1, "get_nb_level() level 0 so using previous nb_level and nb_state forced on, nb_level=" << nb_level << ", nb_state=" << nb_state);
+     	} else {
+//             TRACE_STREAM(1, "get_nb_level() level 0 so using previous nb_level, nb_state already off, nb_level=" << nb_level << ", nb_state=" << nb_state);
+     	}
+        if (nb_level < 1) { // sanity check
+            nb_level = 1;
+//             TRACE_STREAM(1, "get_nb_level() sanity check for nb_level, setting to 1, nb_level=" << nb_level << ", nb_state=" << nb_state);
+        }
+ 		noise_blanker_label("NB", false);
+    }
+
+ 	return nb_level;
 }
 
-// this is for toggling the noise blanker (NB), each call cycles to next blanking level
-void RIG_FTX1::set_noise(bool b)
+// this is for setting the noise blanker (NB) state
+void RIG_FTX1::set_noise(bool b) // b==0 is off
  {
-    // start with last level and move to next state - jump by 3's
-	if (nb_state == 0) {
-		nb_state = 1; // switch from off to on at level 1
-		noise_blanker_label(nb_label(), true);
-	} else if (nb_state < 8) {
-		nb_state += 3; // bump up by 3
-		noise_blanker_label(nb_label(), true);
-	} else if (nb_state < 10) {
-		nb_state += 1; // bump up by 1
-		noise_blanker_label(nb_label(), true);
-	} else {
-		nb_state = 0; // switch off
-		noise_blanker_label(nb_label(), false);
+     int level = nb_level;
+
+	if (b == 0) { // b is off
+	    if (nb_state == 0) {
+//             TRACE_STREAM(1, "set_noise(" << b <<") nb_state already off, nb_level=" << nb_level << ", nb_state=" << nb_state);
+	    } else {
+//             TRACE_STREAM(1, "set_noise(" << b <<") nb_state was on so toggling off, nb_level=" << nb_level << ", nb_state=" << nb_state);
+		    nb_state = 0;
+	    }
+		noise_blanker_label("NB", false);
+	} else { // b is on
+        if (nb_state == 0) {
+            nb_state = 1;
+//             TRACE_STREAM(1, "set_noise(" << b <<") nb_state was off so toggling on, nb_level=" << nb_level << ", nb_state=" << nb_state);
+        } else {
+//             TRACE_STREAM(1, "set_noise(" << b <<") nb_state already on, nb_level=" << nb_level << ", nb_state=" << nb_state);
+        }
+
+       if (level < 1) { // sanity check
+            level = 1; // has to be at least 1 for NB to be on
+//             TRACE_STREAM(1, "set_noise() sanity check for nb_level, setting to 1, nb_level=" << nb_level << ", nb_state=" << nb_state);
+        }
 	}
 
-    this->set_nb_level(nb_state);
+    this->set_nb_level(level); // send new level (and nb_state) to radio
  }
 
  // this is for the noise blanker NB - boolean true if on
  int RIG_FTX1::get_noise()
  {
  	gett("get_noise()");
-
- 	int noiseLevel = this->get_nb_level();
-
- 	return noiseLevel > 0; // return boolean for on/off
+ 	this->get_nb_level(); // get current level and update nb_state
+ 	return nb_state; // return 0 for off and 1 for on
  }
 
 // val 0 .. 100
@@ -1908,6 +1979,7 @@ int RIG_FTX1::get_mic_gain()
 
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return progStatus.mic_gain;
+	if (p + 2 >= replystr.length()) return progStatus.mic_gain;
 	int val = atoi(&replystr[p+2]);
 	return val;
 }
@@ -1942,6 +2014,7 @@ int  RIG_FTX1::get_rf_gain()
 
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return progStatus.rfgain;
+	if (p + 6 > replystr.length()) return progStatus.rfgain;
 	for (int i = 3; i < 6; i++) {
 		rfval *= 10;
 		rfval += replystr[p+i] - '0';
@@ -2015,7 +2088,7 @@ void RIG_FTX1::enable_keyer()
 
 bool RIG_FTX1::set_cw_spot()
 {
-	if (vfo->imode == 2 || vfo->imode == 6) {
+	if (vfo && (vfo->imode == 2 || vfo->imode == 6)) {
 		cmd = "CS0;";
 		if (progStatus.spot_onoff) cmd[2] = '1';
 		sendCommand(cmd);
@@ -2059,7 +2132,11 @@ int RIG_FTX1::get_break_in()
 {
 	cmd = "BI;";
 	wait_char(';', 4, 100, "get break in", ASC);
-	progStatus.break_in = (replystr[2] == '1');
+	if (replystr.length() > 2) {
+		progStatus.break_in = (replystr[2] == '1');
+	} else {
+    	progStatus.break_in = false;
+	}
 	if (progStatus.break_in) {
 		break_in_label("BK-IN");
 		progStatus.cw_delay = 0;
@@ -2083,14 +2160,14 @@ void RIG_FTX1::set_noise_reduction_val(int val)
 }
 
 // DNR - NR slider value
-int  RIG_FTX1::get_noise_reduction_val()
+int RIG_FTX1::get_noise_reduction_val()
 {
 	int val = 0;
 	cmd = rsp = "RL0";
 	cmd.append(";");
 	wait_char(';',6, 100, "GET noise reduction val", ASC);
 	size_t p = replystr.rfind(rsp);
-	if (p == std::string::npos) return val;
+	if (p == std::string::npos || p + 5 >= replystr.length()) return val;
 	val = atoi(&replystr[p+3]);
 	return val;
 }
@@ -2128,6 +2205,8 @@ int  RIG_FTX1::get_noise_reduction()
 // ---------------------------------------------------------------------
 void RIG_FTX1::sync_date(char *dt)
 {
+    if (!dt) return;
+
 	cmd.assign("DT0");
 	cmd.append(dt);
 	cmd += ';';
@@ -2141,6 +2220,8 @@ void RIG_FTX1::sync_date(char *dt)
 // ---------------------------------------------------------------------
 void RIG_FTX1::sync_clock(char *tm)
 {
+    if (!tm || std::strlen(tm) < 8) return;
+
 	cmd.assign("DT1");
 	cmd += tm[0]; cmd += tm[1];
 	cmd += tm[3]; cmd += tm[4];
@@ -2176,6 +2257,7 @@ int  RIG_FTX1::get_squelch()
 
 	size_t p = replystr.rfind(rsp);
 	if (p == std::string::npos) return progStatus.squelch;
+	if (p + 6 >= replystr.length()) return progStatus.squelch;
 	for (int i = 3; i < 6; i++) {
 		sqval *= 10;
 		sqval += replystr[p+i] - '0';
