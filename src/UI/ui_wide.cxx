@@ -243,7 +243,7 @@ Fl_Group *wide_main_group(int X, int Y, int W, int H)
 // FreqDisp B & vfo selection controls group
 		int x_1c = wd_grp1b->x() + wd_grp1b->w() + 2;
 		wd_grp1c = new Fl_Group(
-			x_1c, wd_grp1->y(), W - x_1c - 2, wd_grp1->h(),""); 
+			x_1c, wd_grp1->y(), W - x_1c - 2, wd_grp1->h(),"");
 {
 			FreqDispB = new cFreqControl(
 				wd_grp1c->x(), wd_grp1->y(), wd_grp1c->w(), 38, "10");
@@ -251,13 +251,13 @@ Fl_Group *wide_main_group(int X, int Y, int W, int H)
 			FreqDispB->callback((Fl_Callback*)movFreqB);
 
 			grp_row0a = new Fl_Group(
-				wd_grp1c->x() + 2, wd_grp1c->y() + FreqDispB->h() + 2, 
+				wd_grp1c->x() + 2, wd_grp1c->y() + FreqDispB->h() + 2,
 				FreqDispB->w(), wd_grp1c->h() - FreqDispB->h() - 2);
 {
 				int halfwidth = (wd_grp1c->w() - 8) / 10;
 
 				btnA = new Fl_Light_Button(
-					grp_row0a->x(), grp_row0a->y(), 
+					grp_row0a->x(), grp_row0a->y(),
 					3 * halfwidth, grp_row0a->h(), _("vfoA"));
 				btnA->tooltip(_("Rx-A / Tx-A"));
 				btnA->down_box(FL_THIN_DOWN_BOX);
@@ -266,7 +266,7 @@ Fl_Group *wide_main_group(int X, int Y, int W, int H)
 				btnA->value(1);
 
 				btn_KX3_swapAB = new Fl_Button(
-					grp_row0a->x(), grp_row0a->y(), 
+					grp_row0a->x(), grp_row0a->y(),
 					3 * halfwidth, grp_row0a->h(), _("A / B"));
 				btn_KX3_swapAB->tooltip(_("Swap A/B"));
 				btn_KX3_swapAB->down_box(FL_DOWN_BOX);
@@ -332,7 +332,7 @@ Fl_Group *wide_main_group(int X, int Y, int W, int H)
 			grp_row1->box(FL_FLAT_BOX);
 { // grp_row1a
 			grp_row1a = new Fl_Group(
-				xpos, ypos, 
+				xpos, ypos,
 				grpMeters->w(), 20);
 
 				int w1a = (grpMeters->w() - 2) / 2;
@@ -446,7 +446,7 @@ Fl_Group *wide_main_group(int X, int Y, int W, int H)
 				opBW_B->hide();
 
 				opMODE = new Fl_ComboBox(
-					opBW->x() + opBW->w() + 2, ypos, 
+					opBW->x() + opBW->w() + 2, ypos,
 					w1a, 20, _("Mode"));
 				opMODE->tooltip(_("Select transceiver operating mode"));
 				opMODE->box(FL_FLAT_BOX);
@@ -498,7 +498,7 @@ Fl_Group *wide_main_group(int X, int Y, int W, int H)
 						cbo_preamp->hide();
 
 						btnPreamp = new Fl_Light_Button(
-							btnAttenuator->x() + btnAttenuator->w() + 2, ypos, 
+							btnAttenuator->x() + btnAttenuator->w() + 2, ypos,
 							70, 20, _("PRE"));
 						btnPreamp->tooltip(_("Preamp On/Off"));
 						btnPreamp->down_box(FL_THIN_DOWN_BOX);
@@ -510,7 +510,7 @@ Fl_Group *wide_main_group(int X, int Y, int W, int H)
 					grp_row1b1a->end();
 
 					grp_row1b1b = new Fl_Group(
-						grp_row1b1a->x() + x2b, ypos, 
+						grp_row1b1a->x() + x2b, ypos,
 						FreqDispA->w() - x2b, 20);
 
 						btnNOISE = new Fl_Light_Button(
@@ -521,7 +521,7 @@ Fl_Group *wide_main_group(int X, int Y, int W, int H)
 						btnNOISE->callback((Fl_Callback*)cb_btnNOISE);
 
 						btnAutoNotch = new Fl_Light_Button(
-							btnNOISE->x() + btnNOISE->w() + 2, ypos, 
+							btnNOISE->x() + btnNOISE->w() + 2, ypos,
 							grp_row1b1b->w() - btnNOISE->w() - 4, 20, _("AN"));
 						btnAutoNotch->tooltip(_("Auto Notch On/Off"));
 						btnAutoNotch->down_box(FL_THIN_DOWN_BOX);
@@ -609,7 +609,7 @@ CTRL  click: FreqB -> FreqA\
 			grp_row2a = new Fl_Group(0, 107, colW, 62);
   // sql, mic
 				sldrSQUELCH = new Fl_Wheel_Value_Slider(
-					grp_row2a->x() + 54, grp_row2a->y(), 
+					grp_row2a->x() + 54, grp_row2a->y(),
 					grp_row2a->w() - 54, 18, _("SQL"));
 				sldrSQUELCH->tooltip(_("Adjust Squelch"));
 				sldrSQUELCH->type(5);

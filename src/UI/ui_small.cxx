@@ -756,7 +756,7 @@ Fl_Double_Window *tabs_window()
 	int gph = 70 + 22;
 
 	Fl_Double_Window *w = new Fl_Double_Window(
-		0, 0, 
+		0, 0,
 		small_mainW, gph,
 		"flrig extra controls");
 

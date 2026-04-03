@@ -366,7 +366,7 @@ public:
 
 	bool has_vfo_mem;
 
-// Icom Xcvr 
+// Icom Xcvr
 	bool ICOMrig;
 	bool ICOMmainsub;
 	std::string pre_to;
@@ -496,7 +496,7 @@ public:
 
 	virtual double  get_voltmeter(void) { return -1; }
 
-	virtual const char *agc_label() { 
+	virtual const char *agc_label() {
 		try {
 			return agc_labels_.at(agcval).c_str();
 		} catch (...) {
@@ -577,7 +577,7 @@ int tune_;
 	virtual int  get_tune() { return tune_; }
 
 	virtual void set_attenuator(int val) {atten_state = val;}
-	virtual int  next_attenuator() { 
+	virtual int  next_attenuator() {
 		if (atten_state == 0) atten_state = 1;
 		else atten_state = 0;
 		return atten_state;
@@ -585,7 +585,7 @@ int tune_;
 	virtual int  get_attenuator() {return atten_state;}
 
 	virtual void set_preamp(int val) {preamp_state = val;}
-	virtual int  next_preamp() { 
+	virtual int  next_preamp() {
 		if (preamp_state == 0) preamp_state = 1;
 		else preamp_state = 0;
 		return preamp_state;
@@ -795,7 +795,7 @@ double vfo_;
 	virtual void scan_operation(bool start) {}
 	virtual void power(bool on) {}
     virtual std::vector<MemoryResponse> get_memory_channels() { return std::vector<MemoryResponse>(); }
-	virtual bool get_current_memory(int &memory_channel, std::string &memory_channel_tag){return false;}
+	virtual bool get_current_memory(int &memory_channel, std::string &memory_channel_tag) { return false; }
 	virtual void select_channel(int channel) {}
 
 	virtual void set_xcvr_auto_on() {}
@@ -871,8 +871,8 @@ double vfo_;
 
 // KX3 power scale
 	int powerScale;
-	virtual int power_scale() { 
-		return 1; 
+	virtual int power_scale() {
+		return 1;
 	}
 	virtual int power_max() {
 		return pmax;

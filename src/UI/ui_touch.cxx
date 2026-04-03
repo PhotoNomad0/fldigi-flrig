@@ -1549,7 +1549,7 @@ CTRL  click: FreqB -> FreqA\
 				btn_ext_tuner = new Fl_Check_Button(
 					btnSpecial->x() +
 					btnSpecial->w() + 5,
-					by, 100, bh, 
+					by, 100, bh,
 					_("Ext tuner"));
 				btn_ext_tuner->tooltip(_("use external auto tuner"));
 				btn_ext_tuner->down_box(FL_DOWN_BOX);
@@ -1558,7 +1558,7 @@ CTRL  click: FreqB -> FreqA\
 
 				btn_xcvr_auto_on = new Fl_Check_Button(
 					btn_ext_tuner->x() + btn_ext_tuner->w() + 5, by,
-					100, bh, 
+					100, bh,
 					_("Rig autOn"));
 				btn_xcvr_auto_on->tooltip(_("Auto Turn Rig On with Flrig startup"));
 				btn_xcvr_auto_on->down_box(FL_DOWN_BOX);
@@ -1566,7 +1566,7 @@ CTRL  click: FreqB -> FreqA\
 				btn_xcvr_auto_on->value(progStatus.xcvr_auto_on);
 
 				btn_xcvr_auto_off = new Fl_Check_Button(
-					btn_xcvr_auto_on->x(), by + bh, 
+					btn_xcvr_auto_on->x(), by + bh,
 					100, bh, _("Rig autOff"));
 				btn_xcvr_auto_off->tooltip(_("Auto Turn Rig Off with Flrig exit"));
 				btn_xcvr_auto_off->down_box(FL_DOWN_BOX);
@@ -1582,7 +1582,7 @@ CTRL  click: FreqB -> FreqA\
 				btn_xcvr_synch_clock->value(progStatus.sync_clock);
 
 				btn_xcvr_synch_gmt = new Fl_Check_Button(
-					btn_xcvr_synch_clock->x(), by + bh + 2, 
+					btn_xcvr_synch_clock->x(), by + bh + 2,
 					90, bh, _("Use GMT"));
 				btn_xcvr_synch_gmt->tooltip(_("Synchronize to Greenwich Mean Time"));
 				btn_xcvr_synch_gmt->down_box(FL_DOWN_BOX);
@@ -2157,7 +2157,7 @@ CTRL  click: FreqB -> FreqA\
 				tt550_AT_inline->callback((Fl_Callback*)cb_AT_bypass);
 
 				tt550_AT_Z = new Fl_Light_Button(
-					RIGHT_OF(tt550_AT_inline) + 10, 
+					RIGHT_OF(tt550_AT_inline) + 10,
 					by, 4*bh, bh, _("Z hi"));
 				tt550_AT_Z->tooltip(_("Hi / Lo Impedance network"));
 				tt550_AT_Z->callback((Fl_Callback*)cb_AT_Z);
