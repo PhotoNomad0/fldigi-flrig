@@ -256,6 +256,8 @@ Hspinner *spnr_compression = (Hspinner *)0;
 
 Fl_Group *genericRx = (Fl_Group *)0;
 Fl_Wheel_Value_Slider *sldr_nb_level = (Fl_Wheel_Value_Slider *)0;
+Fl_Wheel_Value_Slider *rx_clarifier_level = (Fl_Wheel_Value_Slider *)0;
+Fl_Light_Button *btn_rx_clarifier = (Fl_Light_Button *)0;
 //Fl_ComboBox *cbo_agc_level = (Fl_ComboBox *)0;
 Hspinner *spnr_bpf_center = (Hspinner *)0;
 
@@ -983,6 +985,17 @@ static void cb_spnr_compression(Hspinner* o, void*) {
 static void cb_sldr_nb_level(Fl_Wheel_Value_Slider* o, void*) {
 	progStatus.nb_level = o->value();
 	cb_nb_level();
+}
+
+static void cb_rx_clarifier_level(Fl_Wheel_Value_Slider* o, void*) {
+	cb_rx_clarifier_level_();
+}
+
+static void cb_btn_rx_clarifier(Fl_Light_Button* o, void*) {
+	bool shift = (((Fl::event_state() & FL_SHIFT) == FL_SHIFT) ||
+		(Fl::event_button() == FL_RIGHT_MOUSE));
+	size_t shift_ = shift ? 1 : 0;
+    cb_rx_clarifier_state_((void *) shift_);
 }
 
 //static void cb_cbo_agc_level(Fl_ComboBox* o, void*) {

@@ -144,6 +144,7 @@ int inhibit_power = 0;
 int inhibit_mic = 0;
 int inhibit_rfgain = 0;
 int inhibit_squelch = 0;
+int inhibit_clarifier_level = 0;
 
 struct SLIDER {
 enum {NOTCH, SHIFT, INNER, OUTER, LOCK, VOLUME, MIC, POWER, SQUELCH, RFGAIN, NB_LEVEL, NR, NR_VAL};
@@ -466,6 +467,19 @@ void read_vfo()
               }
             } else { // not in memory mode
                 last_memory_channel = -1;
+            }
+        }
+
+        if (selrig->has_clarifier) {
+            bool state = selrig->get_rx_clarifier_state();
+            btn_rx_clarifier->value(state ? 1 : 0);
+            if (inhibit_clarifier_level > 0) {
+                inhibit_clarifier_level--;
+            } else {
+                int level = selrig->get_rx_clarifier_value();
+                rx_clarifier_level->value(level);
+                rx_clarifier_level->activate();
+                rx_clarifier_level->redraw();
             }
         }
     }
@@ -4796,6 +4810,64 @@ void cbNoise()
 	update_noise( (void*)0 );
 }
 
+/**
+ * @brief Sets the receive clarifier level value
+ *
+ * Handles the UI callback for the RX clarifier level control (slider/spinner).
+ * Updates the transceiver's RX clarifier offset value after validating the event type.
+ * Ignores mouse enter/leave events and sets inhibit flag during drag operations
+ * to prevent excessive serial port updates.
+ *
+ * @note Requires selrig->has_clarifier to be true
+ * @note Thread-safe via mutex_serial guard lock
+ * @see setIFshift() for similar control pattern
+ */
+void cb_rx_clarifier_level_()
+{
+	if (!selrig->has_clarifier) return;
+	int set = 0;
+
+	trace(1, "cb_rx_clarifier_level_()");
+	set = rx_clarifier_level->value();
+	TRACE_STREAM(1, "cb_rx_clarifier_level_(): rx_clarifier_level->value()=" << set);
+
+	int ev = Fl::event();
+	if (ev == FL_LEAVE || ev == FL_ENTER) return;
+	if (ev == FL_DRAG || ev == FL_PUSH) {
+    	inhibit_clarifier_level = 1;
+		return;
+	}
+	guard_lock lock(&mutex_serial, "100");
+	selrig->set_rx_clarifier_value(set);
+}
+
+/**
+ * @brief Toggles the receive clarifier on/off state
+ *
+ * Callback handler for the RX clarifier enable/disable button.
+ * Reads the current clarifier state from the transceiver and toggles it.
+ * The shift parameter (from widget callback data) is currently unused but
+ * reserved for potential future shift-key modifier detection.
+ *
+ * @param d Callback data pointer (reinterpret_cast to size_t for shift detection)
+ * @note Requires selrig->has_clarifier to be true
+ * @note Thread-safe via mutex_serial guard lock
+ * @see cb_rx_clarifier_level_() for value control
+ */
+void TRACED(cb_rx_clarifier_state_, void *d)
+	if (!selrig->has_clarifier) return;
+
+	size_t shift = reinterpret_cast<size_t>(d);
+	bool shifted = (shift != 0);
+	TRACE_STREAM(1, "cb_rx_clarifier_state_(): shifted=" << shifted);
+
+	bool set = selrig->get_rx_clarifier_state();
+	TRACE_STREAM(1, "cb_rx_clarifier_state_(): selrig->get_rx_clarifier_state()" << set);
+
+	guard_lock lock(&mutex_serial, "101");
+	inhibit_clarifier_level = 1;
+	selrig->set_rx_clarifier_state(!set); // toggle
+}
 
 /**
  * @brief Callback handler for noise blanker level control

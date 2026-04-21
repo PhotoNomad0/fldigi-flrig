@@ -366,6 +366,8 @@ public:
 
 	bool has_vfo_mem;
 
+	bool has_clarifier;
+
 // Icom Xcvr
 	bool ICOMrig;
 	bool ICOMmainsub;
@@ -621,6 +623,10 @@ int no_, noval_;
 		min = 0; max = 100; step = 1; }
 	virtual void get_nb_min_max_step(double &min, double &max, double &step) {
 		min = 0; max = 100; step = 1; }
+    virtual void get_clarifier_min_max_step(int &min, int &max, int &step) {
+        min = -9999; max = 9999; step = 100; }
+    virtual void get_clarifier_min_max_step(double &min, double &max, double &step) {
+        min = -9999; max = 9999; step = 100; }
 
 int nr_, nrval_;
 	virtual void set_noise_reduction(int val) {nr_ = val;}
@@ -795,6 +801,10 @@ double vfo_;
 	virtual void change_channel(bool channel_up) {}
 	virtual void scan_operation(bool start) {}
 	virtual bool is_in_memory_mode() { return false; }
+	virtual void set_rx_clarifier_state(bool start) {}
+	virtual bool get_rx_clarifier_state() { return false; }
+	virtual void set_rx_clarifier_value(int level) {}
+	virtual int get_rx_clarifier_value() { return 0; }
 
 	virtual bool read_rx_dual() { return false; }
 	virtual void set_rx_dual(bool dual) {}

@@ -1713,8 +1713,31 @@ Fl_Double_Window *tabs_window()
 			sldr_nb_level->callback((Fl_Callback*)cb_sldr_nb_level);
 			sldr_nb_level->align(FL_ALIGN_BOTTOM);
 			sldr_nb_level->when(FL_WHEN_CHANGED);
-
 			sldr_nb_level->value(progStatus.nb_level);
+
+			rx_clarifier_level = new Fl_Wheel_Value_Slider(115, 35, 100, 22, _("RX Clarifier"));
+			rx_clarifier_level->tooltip(_("RX Clarifier level"));
+			rx_clarifier_level->type(5);
+			rx_clarifier_level->box(FL_THIN_DOWN_BOX);
+			rx_clarifier_level->color(FL_BACKGROUND_COLOR);
+			rx_clarifier_level->selection_color(FL_BACKGROUND_COLOR);
+			rx_clarifier_level->labeltype(FL_NORMAL_LABEL);
+			rx_clarifier_level->labelfont(0);
+			rx_clarifier_level->labelsize(12);
+			rx_clarifier_level->labelcolor(FL_FOREGROUND_COLOR);
+			rx_clarifier_level->minimum(0);
+			rx_clarifier_level->maximum(0);
+			rx_clarifier_level->step(1);
+			rx_clarifier_level->callback((Fl_Callback*)cb_rx_clarifier_level);
+			rx_clarifier_level->align(FL_ALIGN_BOTTOM);
+			rx_clarifier_level->when(FL_WHEN_CHANGED);
+			rx_clarifier_level->value(0);
+
+            btn_rx_clarifier = new Fl_Light_Button(140, 72, 50, 18, _("RX CLAR"));
+            btn_rx_clarifier->tooltip(_("RX Clarifier On/Off"));
+            btn_rx_clarifier->down_box(FL_THIN_DOWN_BOX);
+            btn_rx_clarifier->labelsize(12);
+            btn_rx_clarifier->callback((Fl_Callback*)cb_btn_rx_clarifier);
 
 			spnr_bpf_center = new Hspinner(115, 35, 90, 22, _("BPF Cntr"), 18);
 			spnr_bpf_center->tooltip(_("Bandpass Filter Center Freq in Hz"));
@@ -1807,29 +1830,29 @@ Fl_Double_Window *tabs_window()
 {
 			ftx1_tab->hide();
 
-			btn_vfo_mem = new Fl_Button(5, 35, 50, 22, _("VFO/MEM"));
-			btn_vfo_mem->tooltip(_("Toggle between VFO and MEM"));
-			btn_vfo_mem->callback((Fl_Callback*)cb_btn_vfo_mem);
-
-			btn_power_off = new Fl_Button(5, 60, 50, 22, _("Power Off"));
-			btn_power_off->tooltip(_("Power off Rig"));
-			btn_power_off->callback((Fl_Callback*)cb_btn_power_off);
-
-			btn_channel_up_dn = new Fl_Button(60, 35, 90, 22, _("Channel UP/SHIFT-DN"));
-			btn_channel_up_dn->tooltip(_("Move Channel Number UP, or DOWN on SHIFT click"));
-			btn_channel_up_dn->callback((Fl_Callback*)cb_btn_channel_up_dn);
-
-			btn_scan_stop_start = new Fl_Button(60, 60, 90, 22, _("Scan STOP/SHF-START"));
-			btn_scan_stop_start->tooltip(_("Stop Channel Scan/or start on SHIFT click"));
-			btn_scan_stop_start->callback((Fl_Callback*)cb_btn_scan_stop_start);
-
-            btn_rx_selection = new Fl_Button(155, 35, 60, 22, _("RX Source"));
+            btn_rx_selection = new Fl_Button(5, 35, 60, 22, _("RX Source"));
             btn_rx_selection->tooltip(_("RX selection - chooses either single or double receiver"));
             btn_rx_selection->callback((Fl_Callback*)cb_rx_selection);
 
-            btn_tx_selection = new Fl_Button(155, 60, 60, 22, _("TX Destination"));
+            btn_vfo_mem = new Fl_Button(70, 35, 50, 22, _("VFO/MEM"));
+			btn_vfo_mem->tooltip(_("Toggle between VFO and MEM"));
+			btn_vfo_mem->callback((Fl_Callback*)cb_btn_vfo_mem);
+
+   			btn_channel_up_dn = new Fl_Button(125, 35, 90, 22, _("Channel UP/SHIFT-DN"));
+			btn_channel_up_dn->tooltip(_("Move Channel Number UP, or DOWN on SHIFT click"));
+			btn_channel_up_dn->callback((Fl_Callback*)cb_btn_channel_up_dn);
+
+            btn_tx_selection = new Fl_Button(5, 60, 60, 22, _("TX Destination"));
             btn_tx_selection->tooltip(_("TX selection - chooses either MAIN-side or SUB-side transmitter"));
             btn_tx_selection->callback((Fl_Callback*)cb_tx_selection);
+
+            btn_power_off = new Fl_Button(70, 60, 50, 22, _("Power Off"));
+			btn_power_off->tooltip(_("Power off Rig"));
+			btn_power_off->callback((Fl_Callback*)cb_btn_power_off);
+
+    		btn_scan_stop_start = new Fl_Button(125, 60, 90, 22, _("Scan STOP/SHF-START"));
+			btn_scan_stop_start->tooltip(_("Stop Channel Scan/or start on SHIFT click"));
+			btn_scan_stop_start->callback((Fl_Callback*)cb_btn_scan_stop_start);
 
             channel_selector = new Fl_ComboBox(300, 35, 120, 22, _("Channel"));
 			channel_selector->tooltip(_("Select Channel from Programmed Memories"));
