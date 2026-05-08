@@ -120,6 +120,7 @@ int meter_image = SWR_IMAGE;
 
 bool xcvr_online = false;
 
+// FTX-1 extension
 std::vector<MemoryResponse> memories;
 
 // meter values passed to display functions
@@ -144,6 +145,8 @@ int inhibit_power = 0;
 int inhibit_mic = 0;
 int inhibit_rfgain = 0;
 int inhibit_squelch = 0;
+
+// FTX-1 extension
 int inhibit_clarifier_level = 0;
 
 struct SLIDER {
@@ -317,6 +320,8 @@ void TRACED(update_vfoAorB, void *d)
 	updateUI((void*)0);
 }
 
+// FTX-1 extension
+
 bool memory_mode_init = false;
 bool last_in_memory_mode = false;
 
@@ -385,15 +390,12 @@ static void update_label_memory(const std::string &memory_channel_str)
     labelMEMORY->redraw_label();
 }
 
+// FTX-1 extension
+bool last_rx_clarifier_state = false;
+int last_rx_clarifier_level = 0;
 
-void read_vfo()
+static void read_ftx1_memory_and_clarifier()
 {
-	if (xcvr_name == rig_K3.name_) {
-		read_K3_vfo();
-		return;
-	}
-
-	if (xcvr_name == rig_FTX1.name_) {
 //     	trace(2,"read_vfo(), rig_FTX1.name_", rig_FTX1.name_.c_str());
 		long long memory_channel = 0;
 		std::string memory_channel_tag = "";
@@ -471,18 +473,38 @@ void read_vfo()
         }
 
         if (selrig->has_clarifier) {
-            bool state = selrig->get_rx_clarifier_state();
-            btn_rx_clarifier->value(state ? 1 : 0);
             if (inhibit_clarifier_level > 0) {
                 inhibit_clarifier_level--;
             } else {
+			bool state = selrig->get_rx_clarifier_state();
+			btn_rx_clarifier->value(state ? 1 : 0);
+			if (state != last_rx_clarifier_state) {
+				TRACE_STREAM(1, "read_vfo(): clarifier state changed to =" << state << ", last state was =" << last_rx_clarifier_state);
+				last_rx_clarifier_state = state;
+			}
+
                 int level = selrig->get_rx_clarifier_value();
                 rx_clarifier_level->value(level);
                 rx_clarifier_level->activate();
                 rx_clarifier_level->redraw();
+			if (level != last_rx_clarifier_level) {
+				TRACE_STREAM(1, "read_vfo(): clarifier level changed to =" << level << ", last level was =" << last_rx_clarifier_level);
+				last_rx_clarifier_level = level;
+			}
             }
         }
     }
+
+void read_vfo()
+{
+	if (xcvr_name == rig_K3.name_) {
+		read_K3_vfo();
+		return;
+	}
+
+	if (xcvr_name == rig_FTX1.name_) {
+		read_ftx1_memory_and_clarifier();
+	}
 
 // transceiver changed ?
 	trace(1,"read_vfo()");
@@ -556,6 +578,7 @@ void TRACED(updateUI, void *)
 
 }
 
+// FTX-1 extension
 int  last_imode = -1; // for determining when mode has changed
 int lastbw = -1; // for determining when bw has changed
 
@@ -891,6 +914,7 @@ void read_auto_notch()
 	}
 }
 
+// FTX-1 extension
 const char *last_nb_label = "";
 int last_nb_level = -1;
 
@@ -2396,6 +2420,8 @@ void TRACED ( updateBandwidthControl, void *d )
 //		sldrOUTER->redraw();
 //	}
 }
+
+// FTX-1 extension
 
 void saveChannels(std::vector<MemoryResponse> memories_) {
 	memories = memories_;
@@ -4265,17 +4291,25 @@ void TRACED(synchronize_now)
 	Fl::add_timeout(0, synchronize);
 }
 
+// FTX-1 extension
+
 void vfo_mem_toggle( void *) {
+	guard_lock lock(&mutex_serial, "103");
+
 	trace(1, "VFO memory toggle()");
 	selrig->vfo_mem_toggle();
 }
 
 void power_off( void *) {
+	guard_lock lock(&mutex_serial, "104");
+
 	trace(1, "power_off()");
 	selrig->power(false);
 }
 
 void scan_stop_start(void *) {
+	guard_lock lock(&mutex_serial, "105");
+
 	trace(1, "scan_stop_start()");
 	selrig->change_channel(false);
 }
@@ -4291,6 +4325,8 @@ void TRACED(power_off_now)
 }
 
 void TRACED(channel_up_down_now, void *d)
+	guard_lock lock(&mutex_serial, "106");
+
 	size_t shift = reinterpret_cast<size_t>(d);
 	bool shift_down = (shift != 0);
 	TRACE_STREAM(1, "channel_up_down_now(): shift_down=" << shift_down);
@@ -4298,6 +4334,8 @@ void TRACED(channel_up_down_now, void *d)
 }
 
 void TRACED(scan_stop_start_now, void *d)
+	guard_lock lock(&mutex_serial, "107");
+
 	size_t shift = reinterpret_cast<size_t>(d);
 	bool shift_start = (shift != 0);
 	TRACE_STREAM(1, "scan_stop_start_now(): shift_start=" << shift_start);
@@ -4305,6 +4343,8 @@ void TRACED(scan_stop_start_now, void *d)
 }
 
 void TRACED(rx_selection_now, void *d)
+	guard_lock lock(&mutex_serial, "108");
+
 	TRACE_STREAM(1, "rx_selection_now() - called");
 	bool dual_rx = selrig->read_rx_dual();
 // 	TRACE_STREAM(1, "rx_selection_now() - currently dual_rx=" << dual_rx << ", toggling");
@@ -4321,6 +4361,8 @@ void TRACED(rx_selection_now, void *d)
 }
 
 void TRACED(tx_selection_now, void *d)
+	guard_lock lock(&mutex_serial, "109");
+
 	TRACE_STREAM(1, "tx_selection_now() - called");
 	bool main_side_tx = selrig->read_tx_destination();
 // 	TRACE_STREAM(1, "tx_selection_now() - currently main_side_tx=" << main_side_tx << ", toggling");
@@ -4810,6 +4852,8 @@ void cbNoise()
 	update_noise( (void*)0 );
 }
 
+// FTX-1 extension
+
 /**
  * @brief Sets the receive clarifier level value
  *
@@ -4822,23 +4866,24 @@ void cbNoise()
  * @note Thread-safe via mutex_serial guard lock
  * @see setIFshift() for similar control pattern
  */
-void cb_rx_clarifier_level_()
+void set_rx_clarifier_level()
 {
 	if (!selrig->has_clarifier) return;
-	int set = 0;
+	int currentLevel = 0;
 
-	trace(1, "cb_rx_clarifier_level_()");
-	set = rx_clarifier_level->value();
-	TRACE_STREAM(1, "cb_rx_clarifier_level_(): rx_clarifier_level->value()=" << set);
+	guard_lock lock(&mutex_serial, "100");
+
+	trace(1, "set_rx_clarifier_level()");
+	currentLevel = rx_clarifier_level->value();
+	TRACE_STREAM(1, "set_rx_clarifier_level(): rx_clarifier_level->value()=" << currentLevel);
 
 	int ev = Fl::event();
 	if (ev == FL_LEAVE || ev == FL_ENTER) return;
 	if (ev == FL_DRAG || ev == FL_PUSH) {
-    	inhibit_clarifier_level = 1;
+    	inhibit_clarifier_level = 2;
 		return;
 	}
-	guard_lock lock(&mutex_serial, "100");
-	selrig->set_rx_clarifier_value(set);
+	selrig->set_rx_clarifier_value(currentLevel);
 }
 
 /**
@@ -4852,21 +4897,38 @@ void cb_rx_clarifier_level_()
  * @param d Callback data pointer (reinterpret_cast to size_t for shift detection)
  * @note Requires selrig->has_clarifier to be true
  * @note Thread-safe via mutex_serial guard lock
- * @see cb_rx_clarifier_level_() for value control
+ * @see set_rx_clarifier_level() for value control
  */
-void TRACED(cb_rx_clarifier_state_, void *d)
+void TRACED(set_rx_clarifier_state, void *d)
 	if (!selrig->has_clarifier) return;
-
-	size_t shift = reinterpret_cast<size_t>(d);
-	bool shifted = (shift != 0);
-	TRACE_STREAM(1, "cb_rx_clarifier_state_(): shifted=" << shifted);
-
-	bool set = selrig->get_rx_clarifier_state();
-	TRACE_STREAM(1, "cb_rx_clarifier_state_(): selrig->get_rx_clarifier_state()" << set);
 
 	guard_lock lock(&mutex_serial, "101");
 	inhibit_clarifier_level = 1;
-	selrig->set_rx_clarifier_state(!set); // toggle
+
+// 	size_t shift = reinterpret_cast<size_t>(d);
+// 	bool shifted = (shift != 0);
+// 	TRACE_STREAM(1, "set_rx_clarifier_state(): shifted=" << shifted);
+
+	bool currentState = selrig->get_rx_clarifier_state();
+	TRACE_STREAM(1, "set_rx_clarifier_state(): RX clarifier state currently" << currentState);
+
+
+	bool newState = !currentState;
+	selrig->set_rx_clarifier_state(newState); // toggle
+	btn_rx_clarifier->value(newState ? 1 : 0); // update button
+	
+	bool updatedState = selrig->get_rx_clarifier_state();
+	
+	if (updatedState != newState) {
+    	TRACE_STREAM(1, "set_rx_clarifier_state(): RX clarifier state is still " << updatedState << ", tried to set to " << newState << ". Trying again");
+    	selrig->set_rx_clarifier_state(newState); // toggle
+    	
+    	// verify state
+    	updatedState = selrig->get_rx_clarifier_state();
+    	if (updatedState != newState) {
+        	TRACE_STREAM(1, "set_rx_clarifier_state(): FAILED - RX clarifier state is still " << updatedState << ", tried to set to " << newState);
+    	}
+	}
 }
 
 /**

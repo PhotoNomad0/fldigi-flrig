@@ -77,6 +77,8 @@ Fl_Box *tcpip_menu_box = (Fl_Box *)0;
 Fl_Group *tcpip_box = (Fl_Group *)0;
 
 Fl_Box *labelMEMORY = (Fl_Box *)0;
+
+// FTX-1 extension
 Fl_Box *label_mem_channel = (Fl_Box *)0;
 Fl_ComboBox *channel_selector = (Fl_ComboBox *)0;
 Fl_Button *btn_rx_selection = (Fl_Light_Button *)0;
@@ -171,6 +173,7 @@ Fl_Button *btn_ft991_select_13 = (Fl_Button *)0;
 Fl_PL_tone *choice_ft991_tTONE = (Fl_PL_tone *)0;
 Fl_PL_tone *choice_ft991_rTONE = (Fl_PL_tone *)0;
 
+// FTX-1 extension
 Fl_Group  *tab_ftx1_bands = (Fl_Group *)0;
 Fl_Button *btn_ftx1_select_1 = (Fl_Button *)0;
 Fl_Button *btn_ftx1_select_2 = (Fl_Button *)0;
@@ -256,8 +259,11 @@ Hspinner *spnr_compression = (Hspinner *)0;
 
 Fl_Group *genericRx = (Fl_Group *)0;
 Fl_Wheel_Value_Slider *sldr_nb_level = (Fl_Wheel_Value_Slider *)0;
+
+// FTX-1 extension
 Fl_Wheel_Value_Slider *rx_clarifier_level = (Fl_Wheel_Value_Slider *)0;
 Fl_Light_Button *btn_rx_clarifier = (Fl_Light_Button *)0;
+
 //Fl_ComboBox *cbo_agc_level = (Fl_ComboBox *)0;
 Hspinner *spnr_bpf_center = (Hspinner *)0;
 
@@ -312,14 +318,17 @@ Fl_ComboBox *cbo_preamp = (Fl_ComboBox *)0;
 
 Fl_Check_Button *btn_use_bpf_center = (Fl_Check_Button *)0;
 Fl_Group *genericMisc = (Fl_Group *)0;
-Fl_Group *ftx1_tab = (Fl_Group *)0;
 Hspinner *spnr_vfo_adj = (Hspinner *)0;
 Hspinner *spnr_line_out = (Hspinner *)0;
 Fl_Light_Button *btnSpecial = (Fl_Light_Button *)0;
+
+// FTX-1 extension
+Fl_Group *ftx1_tab = (Fl_Group *)0;
 Fl_Button *btn_vfo_mem = (Fl_Button *)0;
 Fl_Button *btn_power_off = (Fl_Button *)0;
 Fl_Button *btn_channel_up_dn = (Fl_Button *)0;
 Fl_Button *btn_scan_stop_start = (Fl_Button *)0;
+
 Fl_Check_Button *btn_ext_tuner = (Fl_Check_Button *)0;
 Fl_Check_Button *btn_xcvr_auto_on = (Fl_Check_Button *)0;
 Fl_Check_Button *btn_xcvr_auto_off = (Fl_Check_Button *)0;
@@ -784,6 +793,7 @@ static void cb_opMODE(Fl_ComboBox*, void*) {
 	setMode();
 }
 
+// FTX-1 extension
 static void cb_channel_selector(Fl_ComboBox*, void*) {
 	setChannel();
 }
@@ -987,15 +997,16 @@ static void cb_sldr_nb_level(Fl_Wheel_Value_Slider* o, void*) {
 	cb_nb_level();
 }
 
+// FTX-1 extension
 static void cb_rx_clarifier_level(Fl_Wheel_Value_Slider* o, void*) {
-	cb_rx_clarifier_level_();
+	set_rx_clarifier_level();
 }
 
 static void cb_btn_rx_clarifier(Fl_Light_Button* o, void*) {
 	bool shift = (((Fl::event_state() & FL_SHIFT) == FL_SHIFT) ||
 		(Fl::event_button() == FL_RIGHT_MOUSE));
 	size_t shift_ = shift ? 1 : 0;
-    cb_rx_clarifier_state_((void *) shift_);
+    set_rx_clarifier_state((void *) shift_);
 }
 
 //static void cb_cbo_agc_level(Fl_ComboBox* o, void*) {
@@ -1051,6 +1062,7 @@ static void cb_btn_xcvr_synch_now( Fl_Button *o, void *) {
 	synchronize_now();
 }
 
+// FTX-1 extension
 static void cb_btn_vfo_mem( Fl_Button *o, void *) {
 	vfo_mem_toggle_now();
 }
