@@ -974,7 +974,7 @@ static void cb_spnr_vox_hang(Hspinner* o, void*) {
 
 static void cb_btn_vox(Fl_Light_Button* o, void*) {
 	progStatus.vox_onoff=o->value();
-cb_vox_onoff();
+    cb_vox_onoff();
 }
 
 static void cb_btn_vox_on_dataport(Fl_Check_Button* o, void*) {

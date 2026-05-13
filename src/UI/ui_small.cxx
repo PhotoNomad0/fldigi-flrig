@@ -1842,8 +1842,8 @@ Fl_Double_Window *tabs_window()
 			btn_vfo_mem->callback((Fl_Callback*)cb_btn_vfo_mem);
 
    			btn_channel_up_dn = new Fl_Button(125, 35, 90, 22, _("Channel UP/SHIFT-DN"));
-			btn_channel_up_dn->tooltip(_("Move Channel Number UP, or DOWN on SHIFT click"));
-			btn_channel_up_dn->callback((Fl_Callback*)cb_btn_channel_up_dn);
+            btn_channel_up_dn->tooltip(_("Move Channel Number UP, or DOWN on SHIFT click"));
+            btn_channel_up_dn->callback((Fl_Callback*)cb_btn_channel_up_dn);
 
             btn_tx_selection = new Fl_Button(5, 60, 60, 22, _("TX Destination"));
             btn_tx_selection->tooltip(_("TX selection - chooses either MAIN-side or SUB-side transmitter"));

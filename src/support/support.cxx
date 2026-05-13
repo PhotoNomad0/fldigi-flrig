@@ -121,7 +121,7 @@ int meter_image = SWR_IMAGE;
 bool xcvr_online = false;
 
 // FTX-1 extension
-std::vector<MemoryResponse> memories;
+ std::vector<MemoryResponse> memories;
 
 // meter values passed to display functions
 
@@ -390,92 +390,133 @@ static void update_label_memory(const std::string &memory_channel_str)
     labelMEMORY->redraw_label();
 }
 
+bool dual_rx_last_init = false;
+bool dual_rx_last = false;
+bool main_side_tx_init = false;
+bool main_side_tx_last = false;
+
+static void update_rx_selection_label(bool dual_rx)
+{
+    if (!dual_rx_last_init || (dual_rx != dual_rx_last)) {
+        dual_rx_last = dual_rx;
+        dual_rx_last_init = true;
+
+        const char *rx_srce = dual_rx ? "Dual Receiver" : "Single Receiver";
+        btn_rx_selection->label(rx_srce);
+        btn_rx_selection->redraw_label();
+    }
+}
+
+static void update_tx_selection_label(bool main_side_tx)
+{
+    if (!main_side_tx_init || (main_side_tx != main_side_tx_last)) {
+        main_side_tx_last = main_side_tx;
+        main_side_tx_init = true;
+
+        const char *tx_dest = main_side_tx ? "Main-Side TX" : "Sub-Side TX";
+        btn_tx_selection->label(tx_dest);
+        btn_tx_selection->redraw_label();
+    }
+}
+
+
 // FTX-1 extension
 bool last_rx_clarifier_state = false;
 int last_rx_clarifier_level = 0;
+const int CHECK_INTERVAL = 6;
+int check_interval_count = 0;
 
 static void read_ftx1_memory_and_clarifier()
 {
 //     	trace(2,"read_vfo(), rig_FTX1.name_", rig_FTX1.name_.c_str());
-		long long memory_channel = 0;
-		std::string memory_channel_tag = "";
-		bool in_memory_mode = selrig->get_current_memory(memory_channel, memory_channel_tag);
-		if (!memory_mode_init) {
-    		memory_mode_init = true;
-    		last_in_memory_mode = !in_memory_mode; // force update buttons
+    if (++check_interval_count > CHECK_INTERVAL) {
+        check_interval_count = 0;
+        bool dual_rx = selrig->read_rx_dual();
+        update_rx_selection_label(dual_rx);
+
+        bool main_side_tx = selrig->read_tx_destination();
+        update_tx_selection_label(main_side_tx);
+    }
+
+    long long memory_channel = 0;
+	std::string memory_channel_tag = "";
+	bool in_memory_mode = selrig->get_current_memory(memory_channel, memory_channel_tag);
+	if (!memory_mode_init) {
+		memory_mode_init = true;
+		last_in_memory_mode = !in_memory_mode; // force update buttons
+	}
+
+	if (in_memory_mode != last_in_memory_mode) { // if changed then update controls
+		last_in_memory_mode = in_memory_mode;
+
+		if (in_memory_mode) {
+			if (btn_channel_up_dn) btn_channel_up_dn->show();
+			if (btn_scan_stop_start) btn_scan_stop_start->show();
+
+			if (labelMEMORY) labelMEMORY->show();
+			if (txt_xcvr_synch) txt_xcvr_synch->hide();
+			if (label_mem_channel) label_mem_channel->show();
+			TRACE_STREAM(1, "read_vfo() - get_current_memory changed memory_channel=" << memory_channel);
+			std::string memory_channel_str = std::to_string(memory_channel);
+			TRACE_STREAM(1, "read_vfo() - get_current_memory memory_channel_str=" << memory_channel_str << ", memory_channel_tag=" << memory_channel_tag);
+
+			update_label_memory(memory_channel_str);
+
+			init_ftx1_memory_channels();
+
+			TRACE_STREAM(1, "read_vfo() - in memory mode setting label_mem_channel to '" << memory_channel_str);
+			update_label_mem_channel(memory_channel_tag);
+
+			if (channel_selector) channel_selector->show();
+		} else  { // in vfo_mode
+			labelMEMORY->hide();
+			if (label_mem_channel) {
+				update_label_memory("");
+				label_mem_channel->hide();
+			}
+
+			if (btn_channel_up_dn) btn_channel_up_dn->hide();
+			if (btn_scan_stop_start) btn_scan_stop_start->hide();
+			if (channel_selector) channel_selector->hide();
 		}
+	}
 
-        if (in_memory_mode != last_in_memory_mode) { // if changed then update controls
-            last_in_memory_mode = in_memory_mode;
+	if (label_mem_channel) {
+		if (in_memory_mode) {
+			if (memory_channel != last_memory_channel) { // only update if changed
+				TRACE_STREAM(1, "read_vfo() - memory_channel changed from=" << last_memory_channel << " to " << memory_channel);
+				last_memory_channel = memory_channel;
 
-    		if (in_memory_mode) {
-                if (btn_channel_up_dn) btn_channel_up_dn->show();
-                if (btn_scan_stop_start) btn_scan_stop_start->show();
+				if (memory_channel_tag != lastTag_) {
+					TRACE_STREAM(1, "read_vfo() - memory_channel_tag changed from=''" << lastTag_ << "'' to ''" << memory_channel_tag << "'");
 
-                if (labelMEMORY) labelMEMORY->show();
-                if (txt_xcvr_synch) txt_xcvr_synch->hide();
-                if (label_mem_channel) label_mem_channel->show();
-    			TRACE_STREAM(1, "read_vfo() - get_current_memory changed memory_channel=" << memory_channel );
-                std::string memory_channel_str = std::to_string(memory_channel);
-    			TRACE_STREAM(1, "read_vfo() - get_current_memory memory_channel_str=" << memory_channel_str << ", memory_channel_tag=" << memory_channel_tag );
+					update_label_mem_channel(memory_channel_tag);
 
-                update_label_memory(memory_channel_str);
+					std::string memory_channel_str = std::to_string(memory_channel);
+					update_label_memory(memory_channel_str);
 
-    			init_ftx1_memory_channels();
-
-                TRACE_STREAM(1, "read_vfo() - in memory mode setting label_mem_channel to '" << memory_channel_str);
-                update_label_mem_channel(memory_channel_tag);
-
-                if (channel_selector) channel_selector->show();
-            } else  { // in vfo_mode
-                labelMEMORY->hide();
-                if (label_mem_channel) {
-                    update_label_memory("");
-                    label_mem_channel->hide();
-                }
-
-                if (btn_channel_up_dn) btn_channel_up_dn->hide();
-                if (btn_scan_stop_start) btn_scan_stop_start->hide();
-                if (channel_selector) channel_selector->hide();
-            }
-        }
-
-        if (label_mem_channel) {
-            if (in_memory_mode) {
-              if (memory_channel != last_memory_channel) { // only update if changed
-     			TRACE_STREAM(1, "read_vfo() - memory_channel changed from=" << last_memory_channel << " to " << memory_channel );
-                last_memory_channel = memory_channel;
-
-                if (memory_channel_tag != lastTag_) {
-        			TRACE_STREAM(1, "read_vfo() - memory_channel_tag changed from=''" << lastTag_ << "'' to ''" << memory_channel_tag << "'" );
-
-                    update_label_mem_channel(memory_channel_tag);
-
-                    std::string memory_channel_str = std::to_string(memory_channel);
-                    update_label_memory(memory_channel_str);
-
-                    if (channel_selector) {
-                        std::string current_channel_selection = channel_selector->value();
-                        current_channel_selection = current_channel_selection.substr(
-                            0, current_channel_selection.find(" - ")
-                        );
-                        if (current_channel_selection != memory_channel_str) {
-                            channel_selector->clear_entry();
-                            TRACE_STREAM(1, "read_vfo() - channel_selector was '" << current_channel_selection << "', now channel is '" << memory_channel_str << "', clearing");
+					if (channel_selector) {
+						std::string current_channel_selection = channel_selector->value();
+						current_channel_selection = current_channel_selection.substr(
+							0, current_channel_selection.find(" - ")
+						);
+						if (current_channel_selection != memory_channel_str) {
+							channel_selector->clear_entry();
+							TRACE_STREAM(1, "read_vfo() - channel_selector was '" << current_channel_selection << "', now channel is '" << memory_channel_str << "', clearing");
 //                             channel_selector->redraw_label();
-                        }
-                    }
-                }
-              }
-            } else { // not in memory mode
-                last_memory_channel = -1;
-            }
-        }
+						}
+					}
+				}
+			}
+		} else { // not in memory mode
+			last_memory_channel = -1;
+		}
+	}
 
-        if (selrig->has_clarifier) {
-            if (inhibit_clarifier_level > 0) {
-                inhibit_clarifier_level--;
-            } else {
+	if (selrig->has_clarifier) {
+		if (inhibit_clarifier_level > 0) {
+			inhibit_clarifier_level--;
+		} else {
 			bool state = selrig->get_rx_clarifier_state();
 			btn_rx_clarifier->value(state ? 1 : 0);
 			if (state != last_rx_clarifier_state) {
@@ -483,17 +524,17 @@ static void read_ftx1_memory_and_clarifier()
 				last_rx_clarifier_state = state;
 			}
 
-                int level = selrig->get_rx_clarifier_value();
-                rx_clarifier_level->value(level);
-                rx_clarifier_level->activate();
-                rx_clarifier_level->redraw();
+			int level = selrig->get_rx_clarifier_value();
+			rx_clarifier_level->value(level);
+			rx_clarifier_level->activate();
+			rx_clarifier_level->redraw();
 			if (level != last_rx_clarifier_level) {
 				TRACE_STREAM(1, "read_vfo(): clarifier level changed to =" << level << ", last level was =" << last_rx_clarifier_level);
 				last_rx_clarifier_level = level;
 			}
-            }
-        }
-    }
+		}
+	}
+}
 
 void read_vfo()
 {
@@ -579,7 +620,7 @@ void TRACED(updateUI, void *)
 }
 
 // FTX-1 extension
-int  last_imode = -1; // for determining when mode has changed
+ int  last_imode = -1; // for determining when mode has changed
 int lastbw = -1; // for determining when bw has changed
 
 void TRACED(set_Mode_BW_control, void *)
@@ -4355,9 +4396,7 @@ void TRACED(rx_selection_now, void *d)
 	} else {
 	    TRACE_STREAM(1, "rx_selection_now() - dual_rx toggled to " << dual_rx_new << "");
 	}
-	const char *rx_srce = dual_rx_new ? "Dual Receiver" : "Single Receiver";
-    btn_rx_selection->label(rx_srce);
-    btn_rx_selection->redraw_label();
+    update_rx_selection_label(dual_rx_new);
 }
 
 void TRACED(tx_selection_now, void *d)
@@ -4373,9 +4412,7 @@ void TRACED(tx_selection_now, void *d)
     } else {
         TRACE_STREAM(1, "tx_selection_nows() - main_side_tx toggled to " << main_side_tx_new << "");
     }
-    const char *tx_dest = main_side_tx_new ? "Main-Side TX" : "Sub-Side TX";
-    btn_tx_selection->label(tx_dest);
-    btn_tx_selection->redraw_label();
+    update_tx_selection_label(main_side_tx_new);
 }
 
 void TRACED(start_commands)
@@ -4916,13 +4953,13 @@ void TRACED(set_rx_clarifier_state, void *d)
 	bool newState = !currentState;
 	selrig->set_rx_clarifier_state(newState); // toggle
 	btn_rx_clarifier->value(newState ? 1 : 0); // update button
-	
+
 	bool updatedState = selrig->get_rx_clarifier_state();
-	
+
 	if (updatedState != newState) {
     	TRACE_STREAM(1, "set_rx_clarifier_state(): RX clarifier state is still " << updatedState << ", tried to set to " << newState << ". Trying again");
     	selrig->set_rx_clarifier_state(newState); // toggle
-    	
+
     	// verify state
     	updatedState = selrig->get_rx_clarifier_state();
     	if (updatedState != newState) {

@@ -365,7 +365,7 @@ public:
 
 	bool has_voltmeter;
 
-// FTX-1 extension
+    // FTX-1 extension
 	bool has_vfo_mem;
 	bool has_clarifier;
 
@@ -625,7 +625,7 @@ int no_, noval_;
 	virtual void get_nb_min_max_step(double &min, double &max, double &step) {
 		min = 0; max = 100; step = 1; }
 
-// FTX-1 extension
+    // FTX-1 extension
     virtual void get_clarifier_min_max_step(int &min, int &max, int &step) {
         min = -9999; max = 9999; step = 100; }
     virtual void get_clarifier_min_max_step(double &min, double &max, double &step) {
@@ -799,7 +799,7 @@ double vfo_;
 	virtual void set_band_selection(int v) {}
 	virtual void get_band_selection(int v) {}
 
-// FTX-1 extension
+    // FTX-1 extension
 	virtual void vfo_mem_toggle() {}
 	virtual void power_off() {}
 	virtual void power(bool on) {}
